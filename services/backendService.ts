@@ -1,18 +1,16 @@
 import { Course } from '../types';
 
-const DB_KEY_PREFIX = 'vocab-course-';
-const LATENCY = 200; // ms
-
-const simulateLatency = () => new Promise(resolve => setTimeout(resolve, LATENCY));
-
-const getDbKey = (email: string) => `${DB_KEY_PREFIX}${email}`;
+const API_BASE = 'http://localhost:3001/api';
 
 export const getCourse = async (email: string): Promise<Course | null> => {
   if (!email) return null;
-  await simulateLatency();
+  
   try {
-    const savedCourse = localStorage.getItem(getDbKey(email));
-    return savedCourse ? JSON.parse(savedCourse) : null;
+    const response = await fetch(`${API_BASE}/course/${encodeURIComponent(email)}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch course');
+    }
+    return await response.json();
   } catch (error) {
     console.error("Failed to load course from backend", error);
     return null;
@@ -21,9 +19,17 @@ export const getCourse = async (email: string): Promise<Course | null> => {
 
 export const saveCourse = async (email: string, course: Course): Promise<void> => {
   if (!email) return;
-  await simulateLatency();
+  
   try {
-    localStorage.setItem(getDbKey(email), JSON.stringify(course));
+    const response = await fetch(`${API_BASE}/course/${encodeURIComponent(email)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(course),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to save course');
+    }
   } catch (error) {
     console.error("Failed to save course to backend", error);
     throw new Error("Failed to save course progress.");
