@@ -3,6 +3,13 @@ import { useVocabularyStore } from '../hooks/useVocabularyStore';
 import { Course, Deck, Word, View, Exercise, AddWordResult } from '../types';
 
 interface AppContextType {
+  // Auth state
+  isAuthenticated: boolean;
+  userEmail: string | null;
+  login: (email: string) => void;
+  logout: () => void;
+  
+  // App state
   currentCourse: Course | null;
   isLoading: boolean;
   currentView: View;

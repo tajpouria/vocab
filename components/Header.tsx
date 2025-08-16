@@ -1,5 +1,4 @@
 import React from 'react';
-import { SITE_LANGUAGE } from '../constants';
 import { useAppContext } from '../contexts/AppContext';
 import { View } from '../types';
 import { useTheme } from '../contexts/ThemeContext';
@@ -7,7 +6,7 @@ import SunIcon from './icons/SunIcon';
 import MoonIcon from './icons/MoonIcon';
 
 const Header: React.FC = () => {
-  const { currentCourse, resetData, currentView, setCurrentView } = useAppContext();
+  const { currentCourse, resetData, currentView, setCurrentView, userEmail, logout } = useAppContext();
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -33,15 +32,27 @@ const Header: React.FC = () => {
             )}
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm font-medium text-slate-500 dark:text-slate-400">Site Language: {SITE_LANGUAGE.name}</span>
-            {currentCourse && (
-              <button 
-                onClick={() => window.confirm('Are you sure you want to reset all your data?') && resetData()}
-                className="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400"
-              >
-                Reset Course
-              </button>
-            )}
+            <div className="flex items-center space-x-4">
+                {userEmail && (
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400 hidden sm:block truncate max-w-xs">{userEmail}</span>
+                )}
+                {currentCourse && (
+                    <button 
+                        onClick={() => window.confirm('Are you sure you want to reset your course? This action cannot be undone.') && resetData()}
+                        className="text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-500 dark:hover:text-red-400"
+                    >
+                        Reset Course
+                    </button>
+                )}
+                {userEmail && (
+                    <button 
+                        onClick={logout}
+                        className="text-sm font-medium text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                    >
+                        Log Out
+                    </button>
+                )}
+            </div>
             <button onClick={toggleTheme} className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Toggle theme">
               {theme === 'light' ? <MoonIcon className="h-5 w-5" /> : <SunIcon className="h-5 w-5" />}
             </button>
