@@ -1,0 +1,7 @@
+{
+  "name": "VocabBoost AI",
+  "description": "An intelligent language learning application that uses AI to create personalized vocabulary decks, generate example sentences, and create interactive exercises to help you memorize new words effectively using spaced repetition.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
