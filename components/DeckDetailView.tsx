@@ -6,9 +6,8 @@ import WordCard from './WordCard';
 import SearchIcon from './icons/SearchIcon';
 
 const StudySetDetailView: React.FC = () => {
-  const { activeStudySet, setActiveStudySetId } = useAppContext();
+  const { activeStudySet, setActiveStudySetId, expandedWordId, setExpandedWordId } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
 
   const filteredWords = useMemo(() => {
     if (!activeStudySet) return [];

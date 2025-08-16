@@ -24,6 +24,7 @@ export const useVocabularyStore = () => {
   const [wordToPractice, setWordToPractice] = useState<Word | null>(null);
   const [isCourseLoading, setIsCourseLoading] = useState(false);
   const [highlightedWordId, setHighlightedWordId] = useState<string | null>(null);
+  const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
 
   // Check for existing session on initial load
   useEffect(() => {
@@ -157,6 +158,9 @@ export const useVocabularyStore = () => {
         }
     })();
 
+    // Auto-expand the newly added word
+    setExpandedWordId(newWord.id);
+
     return { status: 'added', wordId: newWord.id, learningWord: newWord.learningWord };
   }, [currentCourse, userEmail]);
 
@@ -223,6 +227,7 @@ export const useVocabularyStore = () => {
   
   const customSetActiveStudySetId = useCallback((studySetId: string | null) => {
     setHighlightedWordId(null);
+    setExpandedWordId(null);
     setActiveStudySetId(studySetId);
   }, []);
 
@@ -249,5 +254,7 @@ export const useVocabularyStore = () => {
     startPracticeForWord,
     endPractice,
     highlightedWordId,
+    expandedWordId,
+    setExpandedWordId,
   };
 };

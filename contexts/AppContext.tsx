@@ -26,6 +26,8 @@ interface AppContextType {
   startPracticeForWord: (word: Word) => void;
   endPractice: () => void;
   highlightedWordId: string | null;
+  expandedWordId: string | null;
+  setExpandedWordId: (wordId: string | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
