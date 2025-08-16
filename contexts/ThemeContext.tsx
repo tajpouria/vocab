@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { themeColors } from '../constants/theme';
 
 type Theme = 'light' | 'dark';
 
@@ -15,7 +16,8 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     if (storedTheme === 'dark' || storedTheme === 'light') {
         return storedTheme;
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Default to dark for gaming theme
+    return 'dark';
   });
 
   useEffect(() => {
@@ -23,6 +25,12 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     root.classList.remove(theme === 'dark' ? 'light' : 'dark');
     root.classList.add(theme);
     localStorage.setItem('theme', theme);
+
+    const colors = themeColors[theme];
+    for (const [key, value] of Object.entries(colors)) {
+      root.style.setProperty(key, value);
+    }
+
   }, [theme]);
 
   const toggleTheme = () => {

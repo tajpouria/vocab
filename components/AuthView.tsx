@@ -67,13 +67,13 @@ const AuthView: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
-      <div className="w-full max-w-md p-8 space-y-8 bg-white dark:bg-slate-800 rounded-xl shadow-lg">
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="w-full max-w-md p-8 space-y-8 bg-card rounded-xl shadow-lg">
         <div>
-          <h2 className="text-center text-3xl font-extrabold text-slate-900 dark:text-white">
+          <h2 className="text-center text-3xl font-extrabold text-card-foreground">
             Sign in or create an account
           </h2>
-          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             to save your vocabulary progress
           </p>
         </div>
@@ -90,7 +90,7 @@ const AuthView: React.FC = () => {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 placeholder-slate-500 dark:placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder:text-muted-foreground text-foreground bg-background focus:outline-none focus:ring-ring focus:border-ring focus:z-10 sm:text-sm"
                 placeholder="Email address"
               />
             </div>
@@ -98,7 +98,7 @@ const AuthView: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 dark:focus:ring-offset-slate-800"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
               >
                 {isLoading ? <SpinnerIcon /> : 'Send Code'}
               </button>
@@ -106,9 +106,9 @@ const AuthView: React.FC = () => {
           </form>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleVerifyCode}>
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-              A code was sent to <span className="font-medium text-slate-800 dark:text-slate-200">{email}</span>.
-              <button onClick={changeEmail} type="button" className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 ml-2">Change</button>
+            <p className="text-center text-sm text-muted-foreground">
+              A code was sent to <span className="font-medium text-foreground">{email}</span>.
+              <button onClick={changeEmail} type="button" className="font-medium text-primary hover:text-primary/90 ml-2">Change</button>
             </p>
             <div>
               <label htmlFor="otp" className="sr-only">One-time code</label>
@@ -121,7 +121,7 @@ const AuthView: React.FC = () => {
                 required
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
-                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-slate-300 dark:border-slate-600 placeholder-slate-500 dark:placeholder-slate-400 text-slate-900 dark:text-white dark:bg-slate-700 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm text-center tracking-[0.5em]"
+                className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder:text-muted-foreground text-foreground bg-background focus:outline-none focus:ring-ring focus:border-ring focus:z-10 sm:text-sm text-center tracking-[0.5em]"
                 placeholder="------"
               />
             </div>
@@ -129,14 +129,14 @@ const AuthView: React.FC = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 dark:focus:ring-offset-slate-800"
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50"
               >
                 {isLoading ? <SpinnerIcon /> : 'Verify Code'}
               </button>
             </div>
           </form>
         )}
-        {error && <p className="mt-2 text-center text-sm text-red-600 dark:text-red-500">{error}</p>}
+        {error && <p className="mt-2 text-center text-sm text-destructive">{error}</p>}
       </div>
     </div>
   );

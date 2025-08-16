@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useVocabularyStore } from '../hooks/useVocabularyStore';
-import { Course, Deck, Word, View, Exercise, AddWordResult } from '../types';
+import { Course, StudySet, Word, View, Exercise, AddWordResult } from '../types';
 
 interface AppContextType {
   // Auth state
@@ -15,14 +15,13 @@ interface AppContextType {
   currentView: View;
   setCurrentView: (view: View) => void;
   createCourse: (learningLanguage: { code: string; name:string }) => void;
-  addDeck: (name: string) => void;
-  addWord: (deckId: string, word: Omit<Word, 'id' | 'srs' | 'exercises'>) => Promise<AddWordResult>;
-  removeWord: (deckId: string, wordId: string) => void;
-  updateWordSrs: (wordId: string, deckId: string, correct: boolean) => void;
-  activeDeck: Deck | null;
-  setActiveDeckId: (deckId: string | null) => void;
+  addStudySet: (name: string) => void;
+  addWord: (studySetId: string, word: Omit<Word, 'id' | 'srs' | 'exercises'>) => Promise<AddWordResult>;
+  removeWord: (studySetId: string, wordId: string) => void;
+  updateWordSrs: (wordId: string, studySetId: string, correct: boolean) => void;
+  activeStudySet: StudySet | null;
+  setActiveStudySetId: (studySetId: string | null) => void;
   getWordsForPractice: () => Word[];
-  resetData: () => void;
   wordToPractice: Word | null;
   startPracticeForWord: (word: Word) => void;
   endPractice: () => void;

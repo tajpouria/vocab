@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Language, Exercise, ExerciseType } from '../types';
 
 const API_KEY = process.env.API_KEY;
@@ -10,6 +10,37 @@ if (!API_KEY) {
 }
 
 const ai = new GoogleGenAI({ apiKey: API_KEY! });
+
+const MAX_RETRIES = 3;
+const INITIAL_DELAY_MS = 1000;
+
+const generateContentWithRetry = async (params: Parameters<typeof ai.models.generateContent>[0]): Promise<GenerateContentResponse> => {
+  let retries = 0;
+  while (retries < MAX_RETRIES) {
+    try {
+      const response = await ai.models.generateContent(params);
+      return response;
+    } catch (error: any) {
+      retries++;
+      const isRateLimitError = error.toString().includes('429') || error.toString().includes('RESOURCE_EXHAUSTED');
+      
+      if (isRateLimitError) {
+        if (retries >= MAX_RETRIES) {
+          console.error("Max retries reached for Gemini API.", error);
+          throw new Error("The AI service is currently busy. Please wait a moment and try again.");
+        }
+        const delay = INITIAL_DELAY_MS * Math.pow(2, retries - 1) + Math.random() * 1000; // Add jitter
+        console.warn(`Gemini API rate limit exceeded. Retrying in ${delay.toFixed(0)}ms... (Attempt ${retries}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error("Unhandled Gemini API error:", error);
+        throw error; // Rethrow original error
+      }
+    }
+  }
+  throw new Error("Failed to get a response from the AI service after multiple retries.");
+};
+
 
 export const processWord = async (
   word: string,
@@ -57,7 +88,7 @@ export const processWord = async (
 Your final output MUST be a single JSON object matching the provided schema.`;
 
   try {
-    const response = await ai.models.generateContent({
+    const response = await generateContentWithRetry({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
@@ -70,7 +101,7 @@ Your final output MUST be a single JSON object matching the provided schema.`;
     return JSON.parse(jsonText);
   } catch (error) {
     console.error("Error processing word with Gemini:", error);
-    throw new Error("Failed to process the word. Please check your API key and try again.");
+    throw new Error(error instanceof Error ? error.message : "Failed to process the word. Please check your API key and try again.");
   }
 };
 
@@ -104,15 +135,15 @@ export const generateExercisesForWord = async (
     const prompt = `Generate 5 distinct exercises for learning the word "${learningWord}" (${learningLanguage.name}) which means "${nativeWord}" (${nativeLanguage.name}).
 Create one of each of the following types:
 1.  'TRANSLATE_MC': A multiple-choice translation question. The question should be the word in ${learningLanguage.name}. Provide 3 plausible but incorrect options in ${nativeLanguage.name}.
-2.  'FILL_BLANK_MC': A multiple-choice fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with the word "${learningWord}" missing. Provide 3 plausible but incorrect word choices in ${learningLanguage.name}. Also, provide the translation of the full sentence in ${nativeLanguage.name} in the 'translationContext' field.
-3.  'FILL_BLANK_TYPE': A typing fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with "${learningWord}" missing. The user has to type the correct answer. Provide the translation of the full sentence in ${nativeLanguage.name} in the 'translationContext' field.
+2.  'FILL_BLANK_MC': A multiple-choice fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with the word "${learningWord}" missing. The 'question' should be this sentence with a blank (e.g., '___'). The 'sentenceContext' field MUST contain the full, correct sentence. Provide 3 plausible but incorrect word choices in ${learningLanguage.name}. The 'translationContext' field MUST contain the translation of the full sentence into ${nativeLanguage.name}.
+3.  'FILL_BLANK_TYPE': A typing fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with "${learningWord}" missing. The 'question' should be this sentence with a blank. The 'sentenceContext' field MUST contain the full, correct sentence. The 'translationContext' field MUST contain the translation of the full sentence into ${nativeLanguage.name}. The user has to type the correct answer.
 4.  'PRONOUNCE_WORD': An exercise to pronounce the word. The 'question' field should be just the word "${learningWord}".
 5.  'PRONOUNCE_SENTENCE': An exercise to pronounce a full sentence. The 'question' field should be a simple sentence in ${learningLanguage.name} that contains the word "${learningWord}".
 
-Return a single JSON object matching the provided schema. Ensure 'options' are only provided for MC types. For 'FILL_BLANK_TYPE' and 'FILL_BLANK_MC', the 'question' field should be the sentence with a blank (e.g., '___'). 'correctAnswer' must always be the single correct word. For pronunciation exercises, 'correctAnswer' should be the same as the 'question'.`;
+Return a single JSON object matching the provided schema. Ensure 'options' are only provided for MC types. For 'FILL_BLANK_TYPE' and 'FILL_BLANK_MC', 'correctAnswer' must always be the single correct word. For pronunciation exercises, 'correctAnswer' should be the same as the 'question'. The 'sentenceContext' and 'translationContext' fields MUST be provided for 'FILL_BLANK_MC' and 'FILL_BLANK_TYPE' exercises.`;
 
     try {
-        const response = await ai.models.generateContent({
+        const response = await generateContentWithRetry({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
@@ -128,12 +159,13 @@ Return a single JSON object matching the provided schema. Ensure 'options' are o
 
     } catch (error) {
         console.error("Error generating exercises with Gemini:", error);
-        throw new Error("Failed to generate exercises. The AI service may be temporarily unavailable.");
+        throw new Error(error instanceof Error ? error.message : "Failed to generate exercises. The AI service may be temporarily unavailable.");
     }
 };
 
 export const textToSpeech = (text: string, langCode: string) => {
     if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Cancel any previous speech
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = langCode;
       // Optional: find a specific voice

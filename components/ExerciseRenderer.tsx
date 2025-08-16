@@ -31,6 +31,36 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
     }
   }, [exercise]);
 
+  // This new effect handles automatically playing the audio for an exercise.
+  useEffect(() => {
+    if (exercise && currentCourse) {
+      let textToSpeak = '';
+
+      switch (exercise.type) {
+        case ExerciseType.TRANSLATE_MC:
+        case ExerciseType.PRONOUNCE_WORD:
+        case ExerciseType.PRONOUNCE_SENTENCE:
+          textToSpeak = exercise.question;
+          break;
+        case ExerciseType.FILL_BLANK_MC:
+        case ExerciseType.FILL_BLANK_TYPE:
+          // For fill-in-the-blank, we want to speak the full sentence.
+          // We'll prioritize the `sentenceContext` field which should be provided by the AI.
+          // As a fallback for older data, we can try to reconstruct the sentence.
+          textToSpeak = exercise.sentenceContext || exercise.question.replace(/___/g, exercise.correctAnswer);
+          break;
+        default:
+          break;
+      }
+
+      if (textToSpeak) {
+        textToSpeech(textToSpeak, currentCourse.learningLanguage.code);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercise, currentCourse]);
+
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (feedback || !userAnswer.trim()) return;
@@ -67,14 +97,14 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
   };
 
   const getFeedbackClasses = (baseClasses: string, option?: string) => {
-    if (!feedback) return `${baseClasses} bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 border-slate-300 dark:border-slate-500`;
+    if (!feedback) return `${baseClasses} bg-background hover:bg-secondary border-border`;
     const isCorrectAnswer = option === exercise.correctAnswer;
     const isSelected = option === userAnswer;
 
-    if(isCorrectAnswer) return `${baseClasses} bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300`;
-    if(isSelected && !isCorrectAnswer) return `${baseClasses} bg-red-100 border-red-400 text-red-800 dark:bg-red-900/50 dark:border-red-500 dark:text-red-300`;
+    if(isCorrectAnswer) return `${baseClasses} bg-green-500/20 border-green-500 text-green-400`;
+    if(isSelected && !isCorrectAnswer) return `${baseClasses} bg-destructive/20 border-destructive text-destructive`;
     
-    return `${baseClasses} bg-slate-100 border-slate-200 text-slate-500 dark:bg-slate-700/50 dark:border-slate-600 dark:text-slate-500 cursor-not-allowed`;
+    return `${baseClasses} bg-secondary/50 border-border/50 text-muted-foreground cursor-not-allowed`;
   };
 
   const renderExercise = () => {
@@ -86,24 +116,24 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         const isSentence = exercise.type === ExerciseType.PRONOUNCE_SENTENCE;
         return (
             <div>
-                <p className="text-center text-sm text-slate-500 dark:text-slate-400">Pronounce the following {isSentence ? 'sentence' : 'word'}:</p>
+                <p className="text-center text-sm text-muted-foreground">Pronounce the following {isSentence ? 'sentence' : 'word'}:</p>
                 <div className="flex items-center justify-center my-6 space-x-4">
-                    <h2 className={`font-bold text-center text-indigo-600 dark:text-indigo-400 ${isSentence ? 'text-2xl' : 'text-4xl'}`}>{exercise.question}</h2>
+                    <h2 className={`font-bold text-center text-primary ${isSentence ? 'text-2xl' : 'text-4xl'}`}>{exercise.question}</h2>
                     <button 
                         onClick={() => handlePronounce(exercise.question)}
-                        className="p-2 rounded-full hover:bg-indigo-100 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 transition-colors flex-shrink-0"
+                        className="p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0"
                         aria-label={`Listen to ${exercise.question}`}
                     >
                         <SpeakerIcon className="h-6 w-6" />
                     </button>
                 </div>
                 
-                {recorderError && <p className="text-center text-red-600 dark:text-red-500 mb-4">{recorderError}</p>}
+                {recorderError && <p className="text-center text-destructive mb-4">{recorderError}</p>}
                 
                 {!audioURL && !isRecording && (
                     <button 
                         onClick={startRecording}
-                        className="w-full flex justify-center items-center space-x-2 px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="w-full flex justify-center items-center space-x-2 px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
                     >
                         <MicrophoneIcon />
                         <span>Start Recording</span>
@@ -126,15 +156,15 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                 {audioURL && !isRecording && (
                     <div className="mt-6 space-y-4">
                         <div className="text-center">
-                            <h3 className="font-semibold text-slate-700 dark:text-slate-200">Review Your Pronunciation</h3>
+                            <h3 className="font-semibold text-card-foreground">Review Your Pronunciation</h3>
                             <audio src={audioURL} controls className="w-full mt-2" />
                         </div>
-                        <div className="text-center border-t border-slate-200 dark:border-slate-700 pt-4">
-                           <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">How did you do?</p>
+                        <div className="text-center border-t border-border pt-4">
+                           <p className="text-sm text-muted-foreground mb-2">How did you do?</p>
                            <div className="flex justify-center space-x-4">
                                 <button 
                                     onClick={() => handleSelfEvaluation(false)}
-                                    className="px-6 py-2 border border-slate-300 dark:border-slate-500 text-sm font-medium rounded-md shadow-sm text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                    className="px-6 py-2 border border-border text-sm font-medium rounded-md shadow-sm text-foreground bg-secondary hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
                                 >
                                     Try Again
                                 </button>
@@ -154,8 +184,8 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.TRANSLATE_MC:
         return (
           <div>
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">Translate the following word:</p>
-            <h2 className="text-4xl font-bold text-center my-6 text-indigo-600 dark:text-indigo-400">{exercise.question}</h2>
+            <p className="text-center text-sm text-muted-foreground">Translate the following word:</p>
+            <h2 className="text-4xl font-bold text-center my-6 text-primary">{exercise.question}</h2>
             <div className="grid grid-cols-1 gap-3 mt-4">
               {shuffledOptions.map((option, i) => (
                 <button
@@ -174,9 +204,9 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.FILL_BLANK_MC:
         return (
           <div>
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">Complete the sentence:</p>
-            <p className="text-2xl text-center my-6 text-slate-700 dark:text-slate-200 leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-indigo-400 dark:text-indigo-500">___</span>') }}/>
-            {exercise.translationContext && <p className="text-center text-slate-500 dark:text-slate-400 italic mb-4">"{exercise.translationContext}"</p>}
+            <p className="text-center text-sm text-muted-foreground">Complete the sentence:</p>
+            <p className="text-2xl text-center my-6 text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4">"{exercise.translationContext}"</p>}
             <div className="grid grid-cols-1 gap-3 mt-4">
               {shuffledOptions.map((option, i) => (
                 <button
@@ -195,17 +225,17 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.FILL_BLANK_TYPE:
         return (
           <form onSubmit={handleSubmit}>
-            <p className="text-center text-sm text-slate-500 dark:text-slate-400">Type the missing word:</p>
-            <p className="text-2xl text-center my-6 text-slate-700 dark:text-slate-200 leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-indigo-400 dark:text-indigo-500">___</span>') }}/>
-            {exercise.translationContext && <p className="text-center text-slate-500 dark:text-slate-400 italic mb-4">"{exercise.translationContext}"</p>}
+            <p className="text-center text-sm text-muted-foreground">Type the missing word:</p>
+            <p className="text-2xl text-center my-6 text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4">"{exercise.translationContext}"</p>}
              <input
                 type="text"
                 value={userAnswer}
                 onChange={(e) => setUserAnswer(e.target.value)}
-                className={`block w-full text-center text-lg p-3 border-2 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 font-semibold
-                ${feedback === 'correct' ? 'bg-green-100 border-green-400 text-green-800 dark:bg-green-900/50 dark:border-green-500 dark:text-green-300' :
-                  feedback === 'incorrect' ? 'bg-red-100 border-red-400 text-red-800 dark:bg-red-900/50 dark:border-red-500 dark:text-red-300' :
-                  'border-slate-300 text-slate-800 dark:border-slate-500 dark:text-white dark:bg-slate-700'
+                className={`block w-full text-center text-lg p-3 border-2 rounded-md shadow-sm focus:ring-ring focus:border-ring font-semibold
+                ${feedback === 'correct' ? 'bg-green-500/20 border-green-500 text-green-400' :
+                  feedback === 'incorrect' ? 'bg-destructive/20 border-destructive text-destructive' :
+                  'border-input text-foreground bg-background'
                 }`}
                 disabled={!!feedback}
                 autoFocus
@@ -213,7 +243,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
               />
               {feedback === 'incorrect' && (
                   <p className="text-center mt-4 text-lg">
-                      Correct answer: <span className="font-bold text-green-600 dark:text-green-400">{exercise.correctAnswer}</span>
+                      Correct answer: <span className="font-bold text-green-500">{exercise.correctAnswer}</span>
                   </p>
               )}
           </form>
@@ -224,7 +254,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-8 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300">
+    <div className="bg-card p-8 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300">
       {renderExercise()}
     </div>
   );

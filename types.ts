@@ -7,10 +7,10 @@ export interface Course {
   id: string;
   learningLanguage: Language;
   nativeLanguage: Language;
-  decks: Deck[];
+  studySets: StudySet[];
 }
 
-export interface Deck {
+export interface StudySet {
   id: string;
   name: string;
   words: Word[];
@@ -57,7 +57,7 @@ export interface Exercise {
 
 export enum View {
   COURSE,
-  PRACTICE,
+  REVIEW,
 }
 
 export type AddWordResult = {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Course, Deck, Word, Language, SrsData, View, Exercise, AddWordResult } from '../types';
+import { Course, StudySet, Word, Language, SrsData, View, Exercise, AddWordResult } from '../types';
 import { SITE_LANGUAGE } from '../constants';
 import { generateExercisesForWord } from '../services/geminiService';
 import * as backendService from '../services/backendService';
@@ -19,7 +19,7 @@ export const useVocabularyStore = () => {
 
   // App State
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
-  const [activeDeckId, setActiveDeckId] = useState<string | null>(null);
+  const [activeStudySetId, setActiveStudySetId] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<View>(View.COURSE);
   const [wordToPractice, setWordToPractice] = useState<Word | null>(null);
   const [isCourseLoading, setIsCourseLoading] = useState(false);
@@ -77,7 +77,7 @@ export const useVocabularyStore = () => {
     setUserEmail(null);
     setIsAuthenticated(false);
     setCurrentCourse(null);
-    setActiveDeckId(null);
+    setActiveStudySetId(null);
     setCurrentView(View.COURSE);
   }, []);
 
@@ -88,37 +88,37 @@ export const useVocabularyStore = () => {
       id: Date.now().toString(),
       learningLanguage,
       nativeLanguage: SITE_LANGUAGE,
-      decks: [],
+      studySets: [],
     };
     setCurrentCourse(newCourse);
-    setActiveDeckId(null);
+    setActiveStudySetId(null);
     setCurrentView(View.COURSE);
     await backendService.saveCourse(userEmail, newCourse);
   }, [userEmail]);
 
-  const addDeck = useCallback((name: string) => {
+  const addStudySet = useCallback((name: string) => {
     if (!userEmail) return;
     setCurrentCourse(prevCourse => {
       if (!prevCourse) return null;
-      const newDeck: Deck = { id: Date.now().toString(), name, words: [] };
-      const updatedCourse = { ...prevCourse, decks: [...prevCourse.decks, newDeck] };
+      const newStudySet: StudySet = { id: Date.now().toString(), name, words: [] };
+      const updatedCourse = { ...prevCourse, studySets: [...prevCourse.studySets, newStudySet] };
       backendService.saveCourse(userEmail, updatedCourse);
       return updatedCourse;
     });
   }, [userEmail]);
 
-  const addWord = useCallback(async (deckId: string, wordData: Omit<Word, 'id' | 'srs' | 'exercises'>): Promise<AddWordResult> => {
+  const addWord = useCallback(async (studySetId: string, wordData: Omit<Word, 'id' | 'srs' | 'exercises'>): Promise<AddWordResult> => {
     const course = currentCourse;
     if (!course || !userEmail) {
         throw new Error("No course or user session.");
     }
     
-    const deck = course.decks.find(d => d.id === deckId);
-    if (!deck) {
-        throw new Error("Deck not found.");
+    const studySet = course.studySets.find(s => s.id === studySetId);
+    if (!studySet) {
+        throw new Error("Study set not found.");
     }
     
-    const existingWord = deck.words.find(w => w.learningWord.toLowerCase() === wordData.learningWord.toLowerCase());
+    const existingWord = studySet.words.find(w => w.learningWord.toLowerCase() === wordData.learningWord.toLowerCase());
 
     if (existingWord) {
         setHighlightedWordId(existingWord.id);
@@ -132,7 +132,7 @@ export const useVocabularyStore = () => {
     
     setCurrentCourse(prevCourse => {
         if (!prevCourse) return null;
-        const updatedCourse = { ...prevCourse, decks: prevCourse.decks.map(d => d.id === deckId ? { ...d, words: [...d.words, newWord] } : d) };
+        const updatedCourse = { ...prevCourse, studySets: prevCourse.studySets.map(s => s.id === studySetId ? { ...s, words: [...s.words, newWord] } : s) };
         backendService.saveCourse(userEmail, updatedCourse);
         return updatedCourse;
     });
@@ -142,15 +142,15 @@ export const useVocabularyStore = () => {
             const exercises = await generateExercisesForWord(wordData.learningWord, wordData.nativeWord, learningLanguage, nativeLanguage);
             setCurrentCourse(prevCourse => {
                 if (!prevCourse) return null;
-                const courseWithExercises = { ...prevCourse, decks: prevCourse.decks.map(deck => deck.id === deckId ? { ...deck, words: deck.words.map(w => w.id === newWord.id ? { ...w, exercises } : w) } : deck) };
+                const courseWithExercises = { ...prevCourse, studySets: prevCourse.studySets.map(studySet => studySet.id === studySetId ? { ...studySet, words: studySet.words.map(w => w.id === newWord.id ? { ...w, exercises } : w) } : studySet) };
                 backendService.saveCourse(userEmail, courseWithExercises);
                 return courseWithExercises;
             });
         } catch (error) {
-            console.error("Exercise generation failed, removing word from deck.", error);
+            console.error("Exercise generation failed, removing word from study set.", error);
             setCurrentCourse(prevCourse => {
                 if (!prevCourse) return null;
-                const courseAfterRollback = { ...prevCourse, decks: prevCourse.decks.map(deck => deck.id === deckId ? { ...deck, words: deck.words.filter(w => w.id !== newWord.id) } : deck) };
+                const courseAfterRollback = { ...prevCourse, studySets: prevCourse.studySets.map(studySet => studySet.id === studySetId ? { ...studySet, words: studySet.words.filter(w => w.id !== newWord.id) } : studySet) };
                 backendService.saveCourse(userEmail, courseAfterRollback);
                 return courseAfterRollback;
             });
@@ -160,24 +160,24 @@ export const useVocabularyStore = () => {
     return { status: 'added', wordId: newWord.id, learningWord: newWord.learningWord };
   }, [currentCourse, userEmail]);
 
-  const removeWord = useCallback((deckId: string, wordId: string) => {
+  const removeWord = useCallback((studySetId: string, wordId: string) => {
     if (!userEmail) return;
     setCurrentCourse(prevCourse => {
       if (!prevCourse) return null;
-      const updatedDecks = prevCourse.decks.map(deck => deck.id === deckId ? { ...deck, words: deck.words.filter(word => word.id !== wordId) } : deck);
-      const updatedCourse = { ...prevCourse, decks: updatedDecks };
+      const updatedStudySets = prevCourse.studySets.map(studySet => studySet.id === studySetId ? { ...studySet, words: studySet.words.filter(word => word.id !== wordId) } : studySet);
+      const updatedCourse = { ...prevCourse, studySets: updatedStudySets };
       backendService.saveCourse(userEmail, updatedCourse);
       return updatedCourse;
     });
   }, [userEmail]);
 
-  const updateWordSrs = useCallback((wordId: string, deckId: string, correct: boolean) => {
+  const updateWordSrs = useCallback((wordId: string, studySetId: string, correct: boolean) => {
     if (!userEmail) return;
     setCurrentCourse(prevCourse => {
         if (!prevCourse) return null;
-        const newDecks = prevCourse.decks.map(deck => {
-            if (deck.id !== deckId) return deck;
-            const newWords = deck.words.map(word => {
+        const newStudySets = prevCourse.studySets.map(studySet => {
+            if (studySet.id !== studySetId) return studySet;
+            const newWords = studySet.words.map(word => {
                 if (word.id !== wordId) return word;
                 const { srs } = word;
                 let newSrs: SrsData;
@@ -194,44 +194,36 @@ export const useVocabularyStore = () => {
                 }
                 return { ...word, srs: newSrs };
             });
-            return { ...deck, words: newWords };
+            return { ...studySet, words: newWords };
         });
-        const updatedCourse = { ...prevCourse, decks: newDecks };
+        const updatedCourse = { ...prevCourse, studySets: newStudySets };
         backendService.saveCourse(userEmail, updatedCourse);
         return updatedCourse;
     });
   }, [userEmail]);
 
   const getWordsForPractice = useCallback(() => {
-    if (!activeDeckId || !currentCourse) return [];
-    const deck = currentCourse.decks.find(d => d.id === activeDeckId);
-    if (!deck) return [];
+    if (!activeStudySetId || !currentCourse) return [];
+    const studySet = currentCourse.studySets.find(d => d.id === activeStudySetId);
+    if (!studySet) return [];
     const now = new Date();
-    return deck.words.filter(word => new Date(word.srs.reviewDate) <= now && word.exercises.length > 0).sort((a, b) => new Date(a.srs.reviewDate).getTime() - new Date(b.srs.reviewDate).getTime());
-  }, [currentCourse, activeDeckId]);
-
-  const resetData = useCallback(async () => {
-    if (!userEmail) return;
-    await backendService.deleteCourse(userEmail);
-    setCurrentCourse(null);
-    setActiveDeckId(null);
-    setCurrentView(View.COURSE);
-  }, [userEmail]);
+    return studySet.words.filter(word => new Date(word.srs.reviewDate) <= now && word.exercises.length > 0).sort((a, b) => new Date(a.srs.reviewDate).getTime() - new Date(b.srs.reviewDate).getTime());
+  }, [currentCourse, activeStudySetId]);
 
   const startPracticeForWord = useCallback((word: Word) => {
     setWordToPractice(word);
-    setCurrentView(View.PRACTICE);
+    setCurrentView(View.REVIEW);
   }, []);
 
   const endPractice = useCallback(() => {
     setWordToPractice(null);
   }, []);
 
-  const activeDeck = currentCourse?.decks.find(d => d.id === activeDeckId) || null;
+  const activeStudySet = currentCourse?.studySets.find(d => d.id === activeStudySetId) || null;
   
-  const customSetActiveDeckId = useCallback((deckId: string | null) => {
+  const customSetActiveStudySetId = useCallback((studySetId: string | null) => {
     setHighlightedWordId(null);
-    setActiveDeckId(deckId);
+    setActiveStudySetId(studySetId);
   }, []);
 
   return { 
@@ -244,16 +236,15 @@ export const useVocabularyStore = () => {
     currentCourse, 
     isLoading: isAuthLoading || isCourseLoading,
     createCourse, 
-    addDeck, 
+    addStudySet, 
     addWord, 
     removeWord,
     updateWordSrs, 
-    activeDeck,
-    setActiveDeckId: customSetActiveDeckId,
+    activeStudySet,
+    setActiveStudySetId: customSetActiveStudySetId,
     getWordsForPractice,
     currentView,
     setCurrentView,
-    resetData,
     wordToPractice,
     startPracticeForWord,
     endPractice,

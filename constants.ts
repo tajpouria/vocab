@@ -15,3 +15,16 @@ export const LANGUAGES: Language[] = [
   { code: 'zh', name: 'Mandarin' },
   { code: 'ru', name: 'Russian' },
 ];
+
+export const EXAMPLE_WORDS: { [key: string]: string } = {
+  es: 'hola',
+  fr: 'bonjour',
+  de: 'hallo',
+  it: 'ciao',
+  pt: 'olá',
+  nl: 'hallo',
+  ja: 'こんにちは',
+  ko: '안녕하세요',
+  zh: '你好',
+  ru: 'привет',
+};

@@ -29,14 +29,3 @@ export const saveCourse = async (email: string, course: Course): Promise<void> =
     throw new Error("Failed to save course progress.");
   }
 };
-
-export const deleteCourse = async (email: string): Promise<void> => {
-  if (!email) return;
-  await simulateLatency();
-  try {
-    localStorage.removeItem(getDbKey(email));
-  } catch (error)
-  {
-      console.error("Failed to delete course from backend", error);
-  }
-};
