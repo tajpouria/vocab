@@ -13,7 +13,6 @@ import {
   Word,
   Language,
   SrsData,
-  View,
   Exercise,
   AddWordResult,
 } from "../types";
@@ -36,7 +35,6 @@ export const useVocabularyStore = () => {
   // App State
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [activeStudySetId, setActiveStudySetId] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState<View>(View.COURSE);
   const [wordToPractice, setWordToPractice] = useState<Word | null>(null);
   const [isCourseLoading, setIsCourseLoading] = useState(false);
   const [highlightedWordId, setHighlightedWordId] = useState<string | null>(
@@ -97,7 +95,7 @@ export const useVocabularyStore = () => {
     setIsAuthenticated(false);
     setCurrentCourse(null);
     setActiveStudySetId(null);
-    setCurrentView(View.COURSE);
+
   }, []);
 
   const createCourse = useCallback(
@@ -111,7 +109,7 @@ export const useVocabularyStore = () => {
       };
       setCurrentCourse(newCourse);
       setActiveStudySetId(null);
-      setCurrentView(View.COURSE);
+  
       await backendService.saveCourse(userEmail, newCourse);
     },
     [userEmail]
@@ -356,7 +354,7 @@ export const useVocabularyStore = () => {
 
   const startPracticeForWord = useCallback((word: Word) => {
     setWordToPractice(word);
-    setCurrentView(View.REVIEW);
+
   }, []);
 
   const endPractice = useCallback(() => {
@@ -389,8 +387,7 @@ export const useVocabularyStore = () => {
     activeStudySet,
     setActiveStudySetId: customSetActiveStudySetId,
     getWordsForPractice,
-    currentView,
-    setCurrentView,
+
     wordToPractice,
     startPracticeForWord,
     endPractice,

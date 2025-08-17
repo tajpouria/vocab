@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useVocabularyStore } from '../hooks/useVocabularyStore';
-import { Course, StudySet, Word, View, Exercise, AddWordResult } from '../types';
+import { Course, StudySet, Word, Exercise, AddWordResult } from '../types';
 
 interface AppContextType {
   // Auth state
@@ -12,8 +12,6 @@ interface AppContextType {
   // App state
   currentCourse: Course | null;
   isLoading: boolean;
-  currentView: View;
-  setCurrentView: (view: View) => void;
   createCourse: (learningLanguage: { code: string; name:string }) => void;
   addStudySet: (name: string) => void;
   addWord: (studySetId: string, word: Omit<Word, 'id' | 'srs' | 'exercises'>) => Promise<AddWordResult>;

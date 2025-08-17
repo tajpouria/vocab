@@ -1,16 +1,13 @@
 import React from "react";
 import { useAppContext } from "../contexts/AppContext";
-import { View } from "../types";
 import { useTheme } from "../contexts/ThemeContext";
 import SunIcon from "./icons/SunIcon";
 import MoonIcon from "./icons/MoonIcon";
 
 const Header: React.FC = () => {
-  const { currentCourse, currentView, setCurrentView, userEmail, logout, activeStudySet, setActiveStudySetId } =
+  const { userEmail, logout, activeStudySet, setActiveStudySetId } =
     useAppContext();
   const { theme, toggleTheme } = useTheme();
-
-  const showNavigation = currentCourse && !activeStudySet;
 
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
@@ -28,54 +25,7 @@ const Header: React.FC = () => {
                 </svg>
               </button>
             )}
-            {showNavigation && (
-              <nav className="hidden md:flex items-center space-x-4">
-                <button
-                  onClick={() => setCurrentView(View.COURSE)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentView === View.COURSE
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  Course
-                </button>
-                <button
-                  onClick={() => setCurrentView(View.REVIEW)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentView === View.REVIEW
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  Review
-                </button>
-              </nav>
-            )}
-            {showNavigation && (
-              <nav className="flex md:hidden items-center space-x-2">
-                <button
-                  onClick={() => setCurrentView(View.COURSE)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentView === View.COURSE
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  Course
-                </button>
-                <button
-                  onClick={() => setCurrentView(View.REVIEW)}
-                  className={`px-3 py-2 text-sm font-medium rounded-md ${
-                    currentView === View.REVIEW
-                      ? "bg-primary/20 text-primary"
-                      : "text-muted-foreground hover:bg-secondary"
-                  }`}
-                >
-                  Review
-                </button>
-              </nav>
-            )}
+
           </div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-4">

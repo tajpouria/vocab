@@ -63,7 +63,6 @@ export interface Exercise {
 
 export enum View {
   COURSE,
-  REVIEW,
 }
 
 export type AddWordResult = {

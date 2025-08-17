@@ -4,22 +4,10 @@ import { useAppContext } from './contexts/AppContext';
 import CourseView from './components/CourseView';
 import LanguageSelector from './components/LanguageSelector';
 import Header from './components/Header';
-import ReviewView from './components/PracticeView';
-import { View } from './types';
-import AuthView from './components/AuthView'; // Import new component
+import AuthView from './components/AuthView';
 
 const App: React.FC = () => {
-  const { isAuthenticated, currentCourse, currentView, isLoading } = useAppContext();
-
-  const renderView = () => {
-    switch (currentView) {
-      case View.REVIEW:
-        return <ReviewView />;
-      case View.COURSE:
-      default:
-        return <CourseView />;
-    }
-  };
+  const { isAuthenticated, currentCourse, isLoading } = useAppContext();
 
   if (isLoading) {
     return (
@@ -43,7 +31,7 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-background font-sans">
       <Header />
       <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-        {!currentCourse ? <LanguageSelector /> : renderView()}
+        {!currentCourse ? <LanguageSelector /> : <CourseView />}
       </main>
     </div>
   );
