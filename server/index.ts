@@ -18,7 +18,7 @@ interface DbData {
   otps: Record<string, { otp: string; email: string; expires: number }>;
 }
 
-const adapter = new JSONFileSync<DbData>("./db.json");
+const adapter = new JSONFileSync<DbData>("../db.json");
 const db = new Low(adapter as any, { courses: {}, otps: {} });
 
 await db.read();
