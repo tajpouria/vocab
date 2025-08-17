@@ -28,7 +28,9 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
     const colors = themeColors[theme];
     for (const [key, value] of Object.entries(colors)) {
-      root.style.setProperty(key, value);
+      if (typeof key === 'string' && typeof value === 'string') {
+        root.style.setProperty(key, value);
+      }
     }
 
   }, [theme]);
