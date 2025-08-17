@@ -10,7 +10,7 @@ fi
 
 echo "Building client..."
 
-yarn run build
+yarn run build --mode production
 
 echo "Bundling server..."
 
