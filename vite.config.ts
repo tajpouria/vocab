@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
-      base: '/vocab/',
+      base: '/',
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -65,8 +65,8 @@ export default defineConfig(({ mode }) => {
             background_color: '#ffffff',
             display: 'standalone',
             orientation: 'portrait',
-            scope: '/vocab/',
-            start_url: '/vocab/',
+            scope: '/',
+            start_url: '/',
             icons: [
               {
                 src: 'pwa-192x192.png',
