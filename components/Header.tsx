@@ -10,6 +10,8 @@ const Header: React.FC = () => {
     useAppContext();
   const { theme, toggleTheme } = useTheme();
 
+  const showNavigation = currentCourse && !activeStudySet;
+
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
       <div className="max-w-7xl mx-auto sm:px-4 lg:px-8">
@@ -26,7 +28,7 @@ const Header: React.FC = () => {
                 </svg>
               </button>
             )}
-            {currentCourse && (
+            {showNavigation && (
               <nav className="hidden md:flex items-center space-x-4">
                 <button
                   onClick={() => setCurrentView(View.COURSE)}
@@ -50,7 +52,7 @@ const Header: React.FC = () => {
                 </button>
               </nav>
             )}
-            {currentCourse && (
+            {showNavigation && (
               <nav className="flex md:hidden items-center space-x-2">
                 <button
                   onClick={() => setCurrentView(View.COURSE)}

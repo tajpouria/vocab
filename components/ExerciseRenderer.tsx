@@ -116,15 +116,15 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         const isSentence = exercise.type === ExerciseType.PRONOUNCE_SENTENCE;
         return (
             <div>
-                <p className="text-center text-sm text-muted-foreground">Pronounce the following {isSentence ? 'sentence' : 'word'}:</p>
-                <div className="flex items-center justify-center my-6 space-x-4">
-                    <h2 className={`font-bold text-center text-primary ${isSentence ? 'text-2xl' : 'text-4xl'}`}>{exercise.question}</h2>
+                <p className="text-center text-sm text-muted-foreground px-2">Pronounce the following {isSentence ? 'sentence' : 'word'}:</p>
+                <div className="flex flex-col sm:flex-row items-center justify-center my-4 sm:my-6 space-y-2 sm:space-y-0 sm:space-x-4 px-2">
+                    <h2 className={`font-bold text-center text-primary break-words ${isSentence ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}>{exercise.question}</h2>
                     <button 
                         onClick={() => handlePronounce(exercise.question)}
-                        className="p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0"
+                        className="p-3 sm:p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0 touch-manipulation"
                         aria-label={`Listen to ${exercise.question}`}
                     >
-                        <SpeakerIcon className="h-6 w-6" />
+                        <SpeakerIcon className="h-7 w-7 sm:h-6 sm:w-6" />
                     </button>
                 </div>
                 
@@ -133,7 +133,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                 {!audioURL && !isRecording && (
                     <button 
                         onClick={startRecording}
-                        className="w-full flex justify-center items-center space-x-2 px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
+                        className="w-full flex justify-center items-center space-x-2 px-4 py-4 sm:py-3 border border-transparent text-base font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring touch-manipulation"
                     >
                         <MicrophoneIcon />
                         <span>Start Recording</span>
@@ -143,7 +143,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                 {isRecording && (
                     <button 
                         onClick={stopRecording}
-                        className="w-full flex justify-center items-center space-x-3 px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        className="w-full flex justify-center items-center space-x-3 px-4 py-4 sm:py-3 border border-transparent text-base font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 touch-manipulation"
                     >
                          <span className="relative flex h-3 w-3">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
@@ -155,22 +155,22 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                 
                 {audioURL && !isRecording && (
                     <div className="mt-6 space-y-4">
-                        <div className="text-center">
-                            <h3 className="font-semibold text-card-foreground">Review Your Pronunciation</h3>
-                            <audio src={audioURL} controls className="w-full mt-2" />
+                        <div className="text-center px-2">
+                            <h3 className="font-semibold text-card-foreground text-sm sm:text-base">Review Your Pronunciation</h3>
+                            <audio src={audioURL} controls className="w-full mt-2 max-w-md mx-auto" />
                         </div>
-                        <div className="text-center border-t border-border pt-4">
-                           <p className="text-sm text-muted-foreground mb-2">How did you do?</p>
-                           <div className="flex justify-center space-x-4">
+                        <div className="text-center border-t border-border pt-4 px-2">
+                           <p className="text-sm text-muted-foreground mb-3">How did you do?</p>
+                           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
                                 <button 
                                     onClick={() => handleSelfEvaluation(false)}
-                                    className="px-6 py-2 border border-border text-sm font-medium rounded-md shadow-sm text-foreground bg-secondary hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
+                                    className="px-6 py-3 sm:py-2 border border-border text-sm font-medium rounded-md shadow-sm text-foreground bg-secondary hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring touch-manipulation"
                                 >
                                     Try Again
                                 </button>
                                 <button 
                                     onClick={() => handleSelfEvaluation(true)}
-                                    className="px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                    className="px-6 py-3 sm:py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 touch-manipulation"
                                 >
                                     I Got It Right
                                 </button>
@@ -184,15 +184,15 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.TRANSLATE_MC:
         return (
           <div>
-            <p className="text-center text-sm text-muted-foreground">Translate the following word:</p>
-            <h2 className="text-4xl font-bold text-center my-6 text-primary">{exercise.question}</h2>
-            <div className="grid grid-cols-1 gap-3 mt-4">
+            <p className="text-center text-sm text-muted-foreground px-2">Translate the following word:</p>
+            <h2 className="text-2xl sm:text-4xl font-bold text-center my-4 sm:my-6 text-primary px-2 break-words">{exercise.question}</h2>
+            <div className="grid grid-cols-1 gap-3 mt-4 px-2">
               {shuffledOptions.map((option, i) => (
                 <button
                   key={i}
                   onClick={() => handleOptionClick(option)}
                   disabled={!!feedback}
-                  className={getFeedbackClasses("w-full text-left p-4 rounded-lg border-2 text-lg font-semibold transition-all duration-200", option)}
+                  className={getFeedbackClasses("w-full text-left p-4 sm:p-4 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all duration-200 touch-manipulation min-h-[48px] flex items-center", option)}
                 >
                   {option}
                 </button>
@@ -204,16 +204,16 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.FILL_BLANK_MC:
         return (
           <div>
-            <p className="text-center text-sm text-muted-foreground">Complete the sentence:</p>
-            <p className="text-2xl text-center my-6 text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
-            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4">"{exercise.translationContext}"</p>}
-            <div className="grid grid-cols-1 gap-3 mt-4">
+            <p className="text-center text-sm text-muted-foreground px-2">Complete the sentence:</p>
+            <p className="text-lg sm:text-2xl text-center my-4 sm:my-6 text-foreground leading-relaxed px-2" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4 px-2 text-sm sm:text-base">"{exercise.translationContext}"</p>}
+            <div className="grid grid-cols-1 gap-3 mt-4 px-2">
               {shuffledOptions.map((option, i) => (
                 <button
                   key={i}
                   onClick={() => handleOptionClick(option)}
                   disabled={!!feedback}
-                  className={getFeedbackClasses("w-full text-left p-4 rounded-lg border-2 text-lg font-semibold transition-all duration-200", option)}
+                  className={getFeedbackClasses("w-full text-left p-4 sm:p-4 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all duration-200 touch-manipulation min-h-[48px] flex items-center", option)}
                 >
                   {option}
                 </button>
@@ -225,24 +225,26 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       case ExerciseType.FILL_BLANK_TYPE:
         return (
           <form onSubmit={handleSubmit}>
-            <p className="text-center text-sm text-muted-foreground">Type the missing word:</p>
-            <p className="text-2xl text-center my-6 text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
-            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4">"{exercise.translationContext}"</p>}
-             <input
-                type="text"
-                value={userAnswer}
-                onChange={(e) => setUserAnswer(e.target.value)}
-                className={`block w-full text-center text-lg p-3 border-2 rounded-md shadow-sm focus:ring-ring focus:border-ring font-semibold
-                ${feedback === 'correct' ? 'bg-green-500/20 border-green-500 text-green-400' :
-                  feedback === 'incorrect' ? 'bg-destructive/20 border-destructive text-destructive' :
-                  'border-input text-foreground bg-background'
-                }`}
-                disabled={!!feedback}
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
-              />
+            <p className="text-center text-sm text-muted-foreground px-2">Type the missing word:</p>
+            <p className="text-lg sm:text-2xl text-center my-4 sm:my-6 text-foreground leading-relaxed px-2" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4 px-2 text-sm sm:text-base">"{exercise.translationContext}"</p>}
+             <div className="px-2">
+               <input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  className={`block w-full text-center text-base sm:text-lg p-4 sm:p-3 border-2 rounded-md shadow-sm focus:ring-ring focus:border-ring font-semibold min-h-[48px]
+                  ${feedback === 'correct' ? 'bg-green-500/20 border-green-500 text-green-400' :
+                    feedback === 'incorrect' ? 'bg-destructive/20 border-destructive text-destructive' :
+                    'border-input text-foreground bg-background'
+                  }`}
+                  disabled={!!feedback}
+                  autoFocus
+                  onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
+                />
+             </div>
               {feedback === 'incorrect' && (
-                  <p className="text-center mt-4 text-lg">
+                  <p className="text-center mt-4 text-base sm:text-lg px-2">
                       Correct answer: <span className="font-bold text-green-500">{exercise.correctAnswer}</span>
                   </p>
               )}
@@ -254,7 +256,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
   };
 
   return (
-    <div className="bg-card p-8 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300">
+    <div className="bg-card p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300 max-w-full overflow-hidden">
       {renderExercise()}
     </div>
   );
