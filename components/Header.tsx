@@ -12,7 +12,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-4">
             {activeStudySet && (
@@ -28,6 +28,30 @@ const Header: React.FC = () => {
             )}
             {currentCourse && (
               <nav className="hidden md:flex items-center space-x-4">
+                <button
+                  onClick={() => setCurrentView(View.COURSE)}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentView === View.COURSE
+                      ? "bg-primary/20 text-primary"
+                      : "text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  Course
+                </button>
+                <button
+                  onClick={() => setCurrentView(View.REVIEW)}
+                  className={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentView === View.REVIEW
+                      ? "bg-primary/20 text-primary"
+                      : "text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  Review
+                </button>
+              </nav>
+            )}
+            {currentCourse && (
+              <nav className="flex md:hidden items-center space-x-2">
                 <button
                   onClick={() => setCurrentView(View.COURSE)}
                   className={`px-3 py-2 text-sm font-medium rounded-md ${
