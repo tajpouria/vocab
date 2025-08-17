@@ -147,7 +147,6 @@ const StudySetDetailView: React.FC = () => {
     return (
       <div className="max-w-2xl mx-auto p-4">
         <div className="text-center mb-4">
-          <h3 className="text-lg font-semibold text-foreground">Learning: <span className="text-primary font-bold">{wordToPractice.learningWord}</span></h3>
           <p className="text-sm text-muted-foreground">Exercise {currentExerciseIndex + 1} of {exerciseQueue.length}</p>
           <div className="w-full bg-secondary rounded-full h-2.5 mt-2">
             <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((currentExerciseIndex + 1) / exerciseQueue.length) * 100}%` }}></div>
@@ -253,12 +252,12 @@ const StudySetDetailView: React.FC = () => {
                         word.id === expandedWordId ? null : word.id
                       )
                     }
-                    className="w-full flex justify-between items-center p-4 bg-card rounded-lg hover:bg-secondary transition-colors"
+                    className="w-full flex justify-between items-center p-3 sm:p-4 bg-card rounded-lg hover:bg-secondary transition-colors touch-manipulation"
                   >
-                    <span className="font-semibold text-card-foreground">
+                    <span className="font-semibold text-card-foreground text-left break-words">
                       {word.learningWord}
                     </span>
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground text-right break-words ml-2 flex-shrink-0">
                       {word.nativeWord}
                     </span>
                   </button>
