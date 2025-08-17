@@ -23,5 +23,6 @@ dist-server
 *.njsproj
 *.sln
 *.sw?
+**/*.tar.gz
 
 **/db.json
