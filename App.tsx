@@ -5,6 +5,7 @@ import CourseView from './components/CourseView';
 import LanguageSelector from './components/LanguageSelector';
 import Header from './components/Header';
 import AuthView from './components/AuthView';
+import InstallPrompt from './components/InstallPrompt';
 
 const App: React.FC = () => {
   const { isAuthenticated, currentCourse, isLoading } = useAppContext();
@@ -33,6 +34,7 @@ const App: React.FC = () => {
       <main className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
         {!currentCourse ? <LanguageSelector /> : <CourseView />}
       </main>
+      <InstallPrompt />
     </div>
   );
 };
