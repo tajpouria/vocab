@@ -1,6 +1,5 @@
 import { Course } from '../types';
- 
-const API_BASE = (import.meta as any).env.VITE_API_BASE || 'http://localhost:3001/api';
+import { API_BASE } from '../constants/api';
 
 export const getCourse = async (email: string): Promise<Course | null> => {
   if (!email) return null;

@@ -61,7 +61,7 @@ export default defineConfig(({ mode }) => {
             name: 'VocabBoost AI',
             short_name: 'VocabBoost',
             description: 'AI-powered vocabulary learning app with spaced repetition',
-            theme_color: '#6366f1',
+            theme_color: '#000000',
             background_color: '#ffffff',
             display: 'standalone',
             orientation: 'portrait',

@@ -1,6 +1,5 @@
 import { Language, Exercise } from '../types';
-
-const API_BASE = 'http://localhost:3001/api';
+import { API_BASE } from '../constants/api';
 
 export const processWord = async (
   word: string,
