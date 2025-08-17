@@ -16,13 +16,17 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
   const [feedback, setFeedback] = useState<'correct' | 'incorrect' | null>(null);
   const [shuffledOptions, setShuffledOptions] = useState<string[]>([]);
   
-  const { isRecording, startRecording, stopRecording, audioURL, error: recorderError } = useAudioRecorder();
+  const { isRecording, startRecording, stopRecording, resetRecording, audioURL, error: recorderError } = useAudioRecorder();
   const { currentCourse } = useAppContext();
 
   useEffect(() => {
     if (exercise) {
       setUserAnswer('');
       setFeedback(null);
+      
+      // Reset audio recording state when exercise changes
+      resetRecording();
+      
       if (exercise.options) {
         // Create unique options by combining exercise.options with correctAnswer, removing duplicates
         const uniqueOptions = Array.from(new Set([...exercise.options, exercise.correctAnswer]));
@@ -31,7 +35,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         setShuffledOptions([]);
       }
     }
-  }, [exercise]);
+  }, [exercise, resetRecording]);
 
   // This effect handles automatically playing audio when an exercise loads.
   // Note: This is AUTOMATIC audio playback that happens when exercises first load.

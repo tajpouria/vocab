@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 export const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -16,7 +16,7 @@ export const useAudioRecorder = () => {
     };
   }, []);
 
-  const startRecording = async () => {
+  const startRecording = useCallback(async () => {
     setError(null);
     setAudioURL(null);
     audioChunksRef.current = [];
@@ -54,13 +54,33 @@ export const useAudioRecorder = () => {
           setError('Could not start recording. Please ensure you have a working microphone.');
       }
     }
-  };
+  }, []);
 
-  const stopRecording = () => {
+  const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
       mediaRecorderRef.current.stop();
     }
-  };
+  }, []);
 
-  return { isRecording, startRecording, stopRecording, audioURL, error };
+  const resetRecording = useCallback(() => {
+    // Stop any ongoing recording
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    
+    // Clean up any existing audio URL to prevent memory leaks
+    setAudioURL(prevURL => {
+      if (prevURL) {
+        URL.revokeObjectURL(prevURL);
+      }
+      return null;
+    });
+    
+    // Reset all state
+    setIsRecording(false);
+    setError(null);
+    audioChunksRef.current = [];
+  }, []);
+
+  return { isRecording, startRecording, stopRecording, resetRecording, audioURL, error };
 };
