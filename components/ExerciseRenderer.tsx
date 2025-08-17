@@ -24,7 +24,9 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
       setUserAnswer('');
       setFeedback(null);
       if (exercise.options) {
-        setShuffledOptions([...exercise.options, exercise.correctAnswer].sort(() => Math.random() - 0.5));
+        // Create unique options by combining exercise.options with correctAnswer, removing duplicates
+        const uniqueOptions = Array.from(new Set([...exercise.options, exercise.correctAnswer]));
+        setShuffledOptions(uniqueOptions.sort(() => Math.random() - 0.5));
       } else {
         setShuffledOptions([]);
       }
