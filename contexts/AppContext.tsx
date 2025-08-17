@@ -26,6 +26,8 @@ interface AppContextType {
   highlightedWordId: string | null;
   expandedWordId: string | null;
   setExpandedWordId: (wordId: string | null) => void;
+  isInLearningMode: boolean;
+  setIsInLearningMode: (isLearning: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);

@@ -41,6 +41,7 @@ export const useVocabularyStore = () => {
     null
   );
   const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
+  const [isInLearningMode, setIsInLearningMode] = useState(false);
 
   // Check for existing session on initial load
   useEffect(() => {
@@ -394,5 +395,7 @@ export const useVocabularyStore = () => {
     highlightedWordId,
     expandedWordId,
     setExpandedWordId,
+    isInLearningMode,
+    setIsInLearningMode,
   };
 };

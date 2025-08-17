@@ -5,28 +5,20 @@ import SunIcon from "./icons/SunIcon";
 import MoonIcon from "./icons/MoonIcon";
 
 const Header: React.FC = () => {
-  const { userEmail, logout, activeStudySet, setActiveStudySetId } =
+  const { userEmail, logout, activeStudySet, setActiveStudySetId, isInLearningMode } =
     useAppContext();
   const { theme, toggleTheme } = useTheme();
+
+  // Hide header when in learning mode
+  if (isInLearningMode) {
+    return null;
+  }
 
   return (
     <header className="bg-card border-b border-border shadow-sm sticky top-0 z-10">
       <div className="max-w-7xl mx-auto sm:px-4 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center space-x-4">
-            {activeStudySet && (
-              <button
-                onClick={() => setActiveStudySetId(null)}
-                className="p-2 rounded-full hover:bg-secondary"
-                aria-label="Back to study sets"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
-
-          </div>
+          <div className="flex items-center space-x-4"></div>
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-4">
               {userEmail && (

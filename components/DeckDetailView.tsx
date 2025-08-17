@@ -4,18 +4,29 @@ import { Word, Exercise } from "../types";
 import AddWordForm from "./AddWordForm";
 import WordCard from "./WordCard";
 import SearchIcon from "./icons/SearchIcon";
-import ExerciseRenderer from "./ExerciseRenderer";
+import LearningView from "./LearningView";
+import CompletionView from "./CompletionView";
 
 const StudySetDetailView: React.FC = () => {
-  const { activeStudySet, expandedWordId, setExpandedWordId, getWordsForPractice, updateWordSrs, wordToPractice, startPracticeForWord, endPractice } = useAppContext();
+  const {
+    activeStudySet,
+    expandedWordId,
+    setExpandedWordId,
+    getWordsForPractice,
+    updateWordSrs,
+    wordToPractice,
+    startPracticeForWord,
+    endPractice,
+    setIsInLearningMode,
+  } = useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Review state
   const [isReviewing, setIsReviewing] = useState(false);
   const [practiceQueue, setPracticeQueue] = useState<Word[]>([]);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
-  
+
   // Single-word practice state
   const [exerciseQueue, setExerciseQueue] = useState<Exercise[]>([]);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -37,13 +48,17 @@ const StudySetDetailView: React.FC = () => {
   const wordsReadyForPractice = useMemo(() => {
     if (!activeStudySet) return 0;
     const now = new Date();
-    return activeStudySet.words.filter(w => new Date(w.srs.due) <= now && w.exercises.length > 0).length;
+    return activeStudySet.words.filter(
+      (w) => new Date(w.srs.due) <= now && w.exercises.length > 0
+    ).length;
   }, [activeStudySet]);
 
   // Effect for single-word practice setup
   useEffect(() => {
     if (wordToPractice) {
-      const shuffledExercises = [...wordToPractice.exercises].sort(() => Math.random() - 0.5);
+      const shuffledExercises = [...wordToPractice.exercises].sort(
+        () => Math.random() - 0.5
+      );
       setExerciseQueue(shuffledExercises);
       setCurrentExerciseIndex(0);
       setSessionResults([]);
@@ -59,7 +74,11 @@ const StudySetDetailView: React.FC = () => {
       const firstWord = queue[0] || null;
       setCurrentWord(firstWord);
       if (firstWord?.exercises.length) {
-        setCurrentExercise(firstWord.exercises[Math.floor(Math.random() * firstWord.exercises.length)]);
+        setCurrentExercise(
+          firstWord.exercises[
+            Math.floor(Math.random() * firstWord.exercises.length)
+          ]
+        );
       }
     }
   }, [isReviewing, getWordsForPractice, wordToPractice, activeStudySet]);
@@ -73,19 +92,23 @@ const StudySetDetailView: React.FC = () => {
   const handleNextWordForStudySet = (correct: boolean) => {
     if (currentWord && activeStudySet) {
       updateWordSrs(currentWord.id, activeStudySet.id, correct);
-      
+
       const newQueue = practiceQueue.slice(1);
       setPracticeQueue(newQueue);
       const nextWord = newQueue[0] || null;
       setCurrentWord(nextWord);
 
       if (nextWord?.exercises.length) {
-        setCurrentExercise(nextWord.exercises[Math.floor(Math.random() * nextWord.exercises.length)]);
+        setCurrentExercise(
+          nextWord.exercises[
+            Math.floor(Math.random() * nextWord.exercises.length)
+          ]
+        );
       } else {
         setCurrentExercise(null);
       }
-      
-      if(newQueue.length === 0){
+
+      if (newQueue.length === 0) {
         setIsReviewing(false);
       }
     }
@@ -96,15 +119,15 @@ const StudySetDetailView: React.FC = () => {
     setSessionResults(newResults);
 
     if (currentExerciseIndex + 1 < exerciseQueue.length) {
-        setCurrentExerciseIndex(currentExerciseIndex + 1);
+      setCurrentExerciseIndex(currentExerciseIndex + 1);
     } else {
-        const correctCount = newResults.filter(r => r).length;
-        const wasSuccessful = correctCount / newResults.length >= 0.5;
-        
-        if (activeStudySet && wordToPractice) {
-            updateWordSrs(wordToPractice.id, activeStudySet.id, wasSuccessful);
-        }
-        setIsWordSessionComplete(true);
+      const correctCount = newResults.filter((r) => r).length;
+      const wasSuccessful = correctCount / newResults.length >= 0.5;
+
+      if (activeStudySet && wordToPractice) {
+        updateWordSrs(wordToPractice.id, activeStudySet.id, wasSuccessful);
+      }
+      setIsWordSessionComplete(true);
     }
   };
 
@@ -112,6 +135,32 @@ const StudySetDetailView: React.FC = () => {
     endPractice();
     setIsWordSessionComplete(false);
   };
+
+  // Auto-return to study set after word session completion
+  useEffect(() => {
+    if (isWordSessionComplete) {
+      const timer = setTimeout(() => {
+        handleFinishWordSession();
+      }, 3000); // Show completion screen for 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isWordSessionComplete]);
+
+  // Auto-return to study set after review completion
+  useEffect(() => {
+    if (isReviewing && !currentWord && !currentExercise) {
+      const timer = setTimeout(() => {
+        handleStopReview();
+      }, 3000); // Show completion screen for 3 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [isReviewing, currentWord, currentExercise]);
+
+  // Set learning mode when in word practice or review
+  useEffect(() => {
+    const inLearningMode = !!wordToPractice || isReviewing;
+    setIsInLearningMode(inLearningMode);
+  }, [wordToPractice, isReviewing, setIsInLearningMode]);
 
   const handleStopReview = () => {
     setIsReviewing(false);
@@ -126,34 +175,29 @@ const StudySetDetailView: React.FC = () => {
   if (wordToPractice) {
     if (isWordSessionComplete) {
       return (
-        <div className="max-w-2xl mx-auto text-center p-4">
-          <div className="bg-card p-8 rounded-xl shadow-md">
-            <h2 className="text-2xl font-bold text-card-foreground">Word Learned!</h2>
-            <p className="mt-2 text-muted-foreground">You got {sessionResults.filter(r => r).length} out of {exerciseQueue.length} exercises correct.</p>
-            <button
-              onClick={handleFinishWordSession}
-              className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
-            >
-              Back to Study Set
-            </button>
-          </div>
-        </div>
+        <CompletionView
+          title="Word Learned!"
+          message="Great job! You've completed all exercises for this word."
+          successCount={sessionResults.filter((r) => r).length}
+          totalCount={exerciseQueue.length}
+        />
       );
     }
 
     const currentExerciseForWord = exerciseQueue[currentExerciseIndex];
-    if (!currentExerciseForWord) return <div className="text-center p-8">Loading exercises...</div>;
+    if (!currentExerciseForWord)
+      return <div className="text-center p-8">Loading exercises...</div>;
 
     return (
-      <div className="max-w-2xl mx-auto p-4">
-        <div className="text-center mb-4">
-          <p className="text-sm text-muted-foreground">Exercise {currentExerciseIndex + 1} of {exerciseQueue.length}</p>
-          <div className="w-full bg-secondary rounded-full h-2.5 mt-2">
-            <div className="bg-primary h-2.5 rounded-full" style={{ width: `${((currentExerciseIndex + 1) / exerciseQueue.length) * 100}%` }}></div>
-          </div>
-        </div>
-        <ExerciseRenderer exercise={currentExerciseForWord} onComplete={handleNextExerciseForWord} />
-      </div>
+      <LearningView
+        currentExercise={currentExerciseForWord}
+        onComplete={handleNextExerciseForWord}
+        currentIndex={currentExerciseIndex}
+        totalCount={exerciseQueue.length}
+        title={`Learning`}
+        onBack={handleFinishWordSession}
+        backButtonText="← Back to Study Set"
+      />
     );
   }
 
@@ -161,35 +205,28 @@ const StudySetDetailView: React.FC = () => {
   if (isReviewing) {
     if (!currentWord || !currentExercise) {
       return (
-        <div className="max-w-2xl mx-auto text-center p-4">
-          <div className="bg-card p-8 rounded-xl shadow-md">
-            <h2 className="text-2xl font-bold text-card-foreground">Review Complete!</h2>
-            <p className="mt-2 text-muted-foreground">Great job! You've reviewed all available words for now.</p>
-            <button 
-              onClick={handleStopReview} 
-              className="mt-6 inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring"
-            >
-              Back to Study Set
-            </button>
-          </div>
-        </div>
+        <CompletionView
+          title="Review Complete!"
+          message="Great job! You've reviewed all available words for now."
+        />
       );
     }
 
+    // Calculate current position in the original queue
+    const totalWords = practiceQueue.length + (currentWord ? 1 : 0);
+    const currentPosition = totalWords - practiceQueue.length;
+
     return (
-      <div className="max-w-2xl mx-auto p-4">
-        <div className="text-center mb-4">
-          <button 
-            onClick={handleStopReview}
-            className="mb-4 text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Back to Study Set
-          </button>
-          <h3 className="text-lg font-semibold text-foreground">Reviewing: <span className="text-primary font-bold">{activeStudySet.name}</span></h3>
-          <p className="text-sm text-muted-foreground">{practiceQueue.length} words remaining</p>
-        </div>
-        <ExerciseRenderer exercise={currentExercise} onComplete={handleNextWordForStudySet} />
-      </div>
+      <LearningView
+        currentExercise={currentExercise}
+        onComplete={handleNextWordForStudySet}
+        currentIndex={currentPosition - 1}
+        totalCount={totalWords}
+        title={`Reviewing: ${activeStudySet.name}`}
+        subtitle={`${practiceQueue.length} words remaining`}
+        onBack={handleStopReview}
+        backButtonText="← Back to Study Set"
+      />
     );
   }
 
@@ -202,21 +239,27 @@ const StudySetDetailView: React.FC = () => {
             {activeStudySet.name}
           </h2>
         </div>
-        
+
         {/* Review Button */}
         <div className="mb-6">
           <div className="bg-card p-4 rounded-lg">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-card-foreground">Review Words</h3>
-                <p className="text-sm text-muted-foreground">{wordsReadyForPractice} words ready for review</p>
+                <h3 className="text-lg font-semibold text-card-foreground">
+                  Review Words
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {wordsReadyForPractice} words ready for review
+                </p>
               </div>
-              <button 
-                onClick={handleStartReview} 
-                disabled={wordsReadyForPractice === 0} 
+              <button
+                onClick={handleStartReview}
+                disabled={wordsReadyForPractice === 0}
                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {wordsReadyForPractice > 0 ? 'Start Review' : 'No words to review'}
+                {wordsReadyForPractice > 0
+                  ? "Start Review"
+                  : "No words to review"}
               </button>
             </div>
           </div>
