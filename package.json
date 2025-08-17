@@ -5,9 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000",
-    "build": "vite build",
-    "preview": "vite preview",
-    "deploy:pages": "gh-pages -d dist"
+    "build": "vite build"
   },
   "dependencies": {
     "react": "^19.1.1",

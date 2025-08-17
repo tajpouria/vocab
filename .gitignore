@@ -12,6 +12,7 @@ dist
 dist-server
 *.local
 .env
+**/.env*
 
 # Editor directories and files
 .vscode/*

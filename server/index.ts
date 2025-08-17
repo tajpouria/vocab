@@ -5,10 +5,13 @@ import { Low } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
 import nodemailer from "nodemailer";
 import { GoogleGenAI, Type } from "@google/genai";
-import { Course, Language, Exercise, ExerciseType } from "../types.js";
+import { Course, ExerciseType } from "../types.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const DB_PATH = process.env.DB_PATH || "../db.json";
+
+console.log("DB_PATH", DB_PATH);
 
 app.use(cors());
 app.use(express.json());
@@ -18,7 +21,7 @@ interface DbData {
   otps: Record<string, { otp: string; email: string; expires: number }>;
 }
 
-const adapter = new JSONFileSync<DbData>("../db.json");
+const adapter = new JSONFileSync<DbData>(DB_PATH);
 const db = new Low(adapter as any, { courses: {}, otps: {} });
 
 await db.read();

@@ -19,6 +19,7 @@ mkdir -p dist-server
 cp -rf server/ dist-server/
 cp -rf types.ts dist-server/
 rm -rf dist-server/server/node_modules
+mv dist-server/server/.env.production dist-server/server/.env
 tar -czf dist-server.tar.gz dist-server > /dev/null 2>&1
 
 echo "Copy server bundle to server..."
@@ -89,4 +90,19 @@ ssh $server_user@$server_ip << 'EOF'
 
     echo "Server deployed and started with PM2!"
     yarn run pm2 status
+
+    cd ~
+    rm -rf dist-server.tar.gz
 EOF
+
+echo "Deploying client..."
+
+yarn run gh-pages -d dist
+
+echo "Cleaning up"
+
+rm -rf dist
+rm -rf dist-server
+rm -rf dist-server.tar.gz
+
+echo "All done!"
