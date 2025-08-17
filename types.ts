@@ -31,18 +31,24 @@ export interface Example {
 }
 
 export interface SrsData {
-  stability: number;
-  difficulty: number;
-  reviewDate: string; // ISO string
-  lapses: number;
+  due: Date; // Date when the card is next due for review
+  stability: number; // A measure of how well the information is retained
+  difficulty: number; // Reflects the inherent difficulty of the card content
+  elapsed_days: number; // Days since the card was last reviewed
+  scheduled_days: number; // The interval of time in days between this review and the next one
+  learning_steps: number; // Keeps track of the current step during the (re)learning stages
+  reps: number; // Total number of times the card has been reviewed
+  lapses: number; // Times the card was forgotten or remembered incorrectly
+  state: number; // FSRS card state: 0=New, 1=Learning, 2=Review, 3=Relearning
+  last_review?: Date; // The most recent review date, if applicable
 }
 
 export enum ExerciseType {
-  TRANSLATE_MC = 'TRANSLATE_MC',
-  FILL_BLANK_MC = 'FILL_BLANK_MC',
-  FILL_BLANK_TYPE = 'FILL_BLANK_TYPE',
-  PRONOUNCE_WORD = 'PRONOUNCE_WORD',
-  PRONOUNCE_SENTENCE = 'PRONOUNCE_SENTENCE',
+  TRANSLATE_MC = "TRANSLATE_MC",
+  FILL_BLANK_MC = "FILL_BLANK_MC",
+  FILL_BLANK_TYPE = "FILL_BLANK_TYPE",
+  PRONOUNCE_WORD = "PRONOUNCE_WORD",
+  PRONOUNCE_SENTENCE = "PRONOUNCE_SENTENCE",
 }
 
 export interface Exercise {
@@ -61,7 +67,7 @@ export enum View {
 }
 
 export type AddWordResult = {
-  status: 'added' | 'duplicate';
+  status: "added" | "duplicate";
   wordId: string;
   learningWord: string;
 };

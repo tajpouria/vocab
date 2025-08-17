@@ -4,15 +4,16 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --port 3000",
     "build": "vite build",
     "preview": "vite preview",
     "server": "cd server && npm run dev",
     "server:install": "cd server && npm install"
   },
   "dependencies": {
+    "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react": "^19.1.1"
+    "ts-fsrs": "^5.2.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

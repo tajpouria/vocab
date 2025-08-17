@@ -19,7 +19,7 @@ interface DbData {
 }
 
 const adapter = new JSONFileSync<DbData>("./db.json");
-const db = new Low(adapter, { courses: {}, otps: {} });
+const db = new Low(adapter as any, { courses: {}, otps: {} });
 
 await db.read();
 

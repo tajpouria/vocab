@@ -31,7 +31,7 @@ const ReviewView: React.FC = () => {
   const wordsReadyForPractice = useMemo(() => {
     if (!activeStudySet) return 0;
     const now = new Date();
-    return activeStudySet.words.filter(w => new Date(w.srs.reviewDate) <= now && w.exercises.length > 0).length;
+    return activeStudySet.words.filter(w => new Date(w.srs.due) <= now && w.exercises.length > 0).length;
   }, [activeStudySet]);
 
   // Effect for single-word practice setup

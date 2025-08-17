@@ -369,6 +369,11 @@ tinyglobby@^0.2.13:
     fdir "^6.4.4"
     picomatch "^4.0.2"
 
+ts-fsrs@^5.2.2:
+  version "5.2.2"
+  resolved "https://registry.yarnpkg.com/ts-fsrs/-/ts-fsrs-5.2.2.tgz#e3d0d17181b1a1da25521d5969b1eda128e8c238"
+  integrity sha512-cF9yLgz3P+kFYd0rF1YG2753SWFFdamEx8fgCXXCtW2H2cIowx1dxq9k8ZZnBdqE4MaaLcGYBzPbUW6ls0vluQ==
+
 typescript@~5.8.2:
   version "5.8.3"
   resolved "https://registry.npmjs.org/typescript/-/typescript-5.8.3.tgz"
