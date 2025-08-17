@@ -31,7 +31,9 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
     }
   }, [exercise]);
 
-  // This new effect handles automatically playing the audio for an exercise.
+  // This effect handles automatically playing audio when an exercise loads.
+  // Note: This is AUTOMATIC audio playback that happens when exercises first load.
+  // Manual pronunciation buttons (speaker icons) are now available in all exercise types for replay.
   useEffect(() => {
     if (exercise && currentCourse) {
       let textToSpeak = '';
@@ -119,6 +121,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                 <p className="text-center text-sm text-muted-foreground px-2">Pronounce the following {isSentence ? 'sentence' : 'word'}:</p>
                 <div className="flex flex-col sm:flex-row items-center justify-center my-4 sm:my-6 space-y-2 sm:space-y-0 sm:space-x-4 px-2">
                     <h2 className={`font-bold text-center text-primary break-words ${isSentence ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-4xl'}`}>{exercise.question}</h2>
+                    {/* Pronunciation button for manual replay */}
                     <button 
                         onClick={() => handlePronounce(exercise.question)}
                         className="p-3 sm:p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0 touch-manipulation"
@@ -185,7 +188,16 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         return (
           <div>
             <p className="text-center text-sm text-muted-foreground px-2">Translate the following word:</p>
-            <h2 className="text-2xl sm:text-4xl font-bold text-center my-4 sm:my-6 text-primary px-2 break-words">{exercise.question}</h2>
+            <div className="flex flex-col sm:flex-row items-center justify-center my-4 sm:my-6 space-y-2 sm:space-y-0 sm:space-x-4 px-2">
+              <h2 className="text-2xl sm:text-4xl font-bold text-center text-primary break-words">{exercise.question}</h2>
+              <button 
+                onClick={() => handlePronounce(exercise.question)}
+                className="p-3 sm:p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0 touch-manipulation"
+                aria-label={`Listen to ${exercise.question}`}
+              >
+                <SpeakerIcon className="h-7 w-7 sm:h-6 sm:w-6" />
+              </button>
+            </div>
             <div className="grid grid-cols-1 gap-3 mt-4 px-2">
               {shuffledOptions.map((option, i) => (
                 <button
@@ -205,7 +217,16 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         return (
           <div>
             <p className="text-center text-sm text-muted-foreground px-2">Complete the sentence:</p>
-            <p className="text-lg sm:text-2xl text-center my-4 sm:my-6 text-foreground leading-relaxed px-2" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            <div className="flex flex-col sm:flex-row items-center justify-center my-4 sm:my-6 space-y-2 sm:space-y-0 sm:space-x-4 px-2">
+              <p className="text-lg sm:text-2xl text-center text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+              <button 
+                onClick={() => handlePronounce(exercise.sentenceContext || exercise.question.replace(/___/g, exercise.correctAnswer))}
+                className="p-3 sm:p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0 touch-manipulation"
+                aria-label="Listen to the complete sentence"
+              >
+                <SpeakerIcon className="h-7 w-7 sm:h-6 sm:w-6" />
+              </button>
+            </div>
             {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4 px-2 text-sm sm:text-base">"{exercise.translationContext}"</p>}
             <div className="grid grid-cols-1 gap-3 mt-4 px-2">
               {shuffledOptions.map((option, i) => (
@@ -226,7 +247,17 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
         return (
           <form onSubmit={handleSubmit}>
             <p className="text-center text-sm text-muted-foreground px-2">Type the missing word:</p>
-            <p className="text-lg sm:text-2xl text-center my-4 sm:my-6 text-foreground leading-relaxed px-2" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+            <div className="flex flex-col sm:flex-row items-center justify-center my-4 sm:my-6 space-y-2 sm:space-y-0 sm:space-x-4 px-2">
+              <p className="text-lg sm:text-2xl text-center text-foreground leading-relaxed" dangerouslySetInnerHTML={{ __html: exercise.question.replace(/___/g, '<span class="font-bold text-primary">___</span>') }}/>
+              <button 
+                type="button"
+                onClick={() => handlePronounce(exercise.sentenceContext || exercise.question.replace(/___/g, exercise.correctAnswer))}
+                className="p-3 sm:p-2 rounded-full hover:bg-primary/10 text-primary transition-colors flex-shrink-0 touch-manipulation"
+                aria-label="Listen to the complete sentence"
+              >
+                <SpeakerIcon className="h-7 w-7 sm:h-6 sm:w-6" />
+              </button>
+            </div>
             {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4 px-2 text-sm sm:text-base">"{exercise.translationContext}"</p>}
              <div className="px-2">
                <input
