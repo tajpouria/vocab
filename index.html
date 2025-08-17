@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VocabBoost AI</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="AI-powered vocabulary learning app with spaced repetition" />
+    <meta name="theme-color" content="#6366f1" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="VocabBoost" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="mask-icon" href="/masked-icon.svg" color="#6366f1" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              border: 'rgb(var(--border) / <alpha-value>)',
+              input: 'rgb(var(--input) / <alpha-value>)',
+              ring: 'rgb(var(--ring) / <alpha-value>)',
+              background: 'rgb(var(--background) / <alpha-value>)',
+              foreground: 'rgb(var(--foreground) / <alpha-value>)',
+              primary: {
+                DEFAULT: 'rgb(var(--primary) / <alpha-value>)',
+                foreground: 'rgb(var(--primary-foreground) / <alpha-value>)',
+              },
+              secondary: {
+                DEFAULT: 'rgb(var(--secondary) / <alpha-value>)',
+                foreground: 'rgb(var(--secondary-foreground) / <alpha-value>)',
+              },
+              destructive: {
+                DEFAULT: 'rgb(var(--destructive) / <alpha-value>)',
+                foreground: 'rgb(var(--destructive-foreground) / <alpha-value>)',
+              },
+              muted: {
+                DEFAULT: 'rgb(var(--muted) / <alpha-value>)',
+                foreground: 'rgb(var(--muted-foreground) / <alpha-value>)',
+              },
+              card: {
+                DEFAULT: 'rgb(var(--card) / <alpha-value>)',
+                foreground: 'rgb(var(--card-foreground) / <alpha-value>)',
+              },
+            }
+          }
+        }
+      }
+    </script>
+
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://esm.sh/react-dom@^19.1.1/",
+    "react/": "https://esm.sh/react@^19.1.1/",
+    "react": "https://esm.sh/react@^19.1.1",
+    "@google/genai": "https://esm.sh/@google/genai@^1.14.0"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-CYGBaRJj.js"></script>
+<link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
+  <body class="bg-background text-foreground">
+    <div id="root"></div>
+  </body>
+</html>
