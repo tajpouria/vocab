@@ -293,7 +293,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
   };
 
   return (
-    <div className="bg-card p-4 sm:p-6 lg:p-8 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300 max-w-full overflow-hidden">
+    <div className="bg-card p-6 sm:p-8 lg:p-12 rounded-xl shadow-xl dark:shadow-2xl dark:shadow-black/25 transition-all duration-300 max-w-full overflow-hidden">
       {renderExercise()}
     </div>
   );

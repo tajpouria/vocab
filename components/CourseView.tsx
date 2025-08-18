@@ -7,7 +7,7 @@ import StudySetDetailView from './DeckDetailView';
 import SearchIcon from './icons/SearchIcon';
 
 const CourseView: React.FC = () => {
-  const { currentCourse, addStudySet, activeStudySet, setActiveStudySetId } = useAppContext();
+  const { currentCourse, addStudySet, activeStudySet, setActiveStudySetId, isInLearningMode } = useAppContext();
   const [newStudySetName, setNewStudySetName] = React.useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedWordId, setExpandedWordId] = useState<string | null>(null);
@@ -35,6 +35,11 @@ const CourseView: React.FC = () => {
   }, [activeStudySet, searchQuery]);
 
   if (!currentCourse) return null;
+
+  // If in learning mode, show the learning interface on all screen sizes
+  if (isInLearningMode) {
+    return <StudySetDetailView />;
+  }
 
   return (
     <>
