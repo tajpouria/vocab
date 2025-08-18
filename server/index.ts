@@ -5,7 +5,19 @@ import { Low } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
 import nodemailer from "nodemailer";
 import { GoogleGenAI, Type } from "@google/genai";
-import { Course, ExerciseType } from "../types.js";
+import { Course, ExerciseType, Session } from "../types.js";
+
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        email: string;
+        sessionId: string;
+      };
+    }
+  }
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -19,12 +31,28 @@ app.use(express.json());
 interface DbData {
   courses: Record<string, Course>;
   otps: Record<string, { otp: string; email: string; expires: number }>;
+  sessions: Record<string, Session>;
 }
 
 const adapter = new JSONFileSync<DbData>(DB_PATH);
-const db = new Low(adapter as any, { courses: {}, otps: {} });
+const db = new Low(adapter as any, { courses: {}, otps: {}, sessions: {} });
 
 await db.read();
+
+// Ensure all required properties exist
+if (!db.data) {
+  db.data = { courses: {}, otps: {}, sessions: {} };
+}
+if (!db.data.courses) {
+  db.data.courses = {};
+}
+if (!db.data.otps) {
+  db.data.otps = {};
+}
+if (!db.data.sessions) {
+  db.data.sessions = {};
+}
+await db.write();
 
 const transporter = process.env.SMTP_USER
   ? nodemailer.createTransport({
@@ -39,6 +67,82 @@ const transporter = process.env.SMTP_USER
   : null;
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+
+// Session utilities
+const generateSessionId = () => {
+  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+};
+
+const createSession = (email: string): Session => {
+  const sessionId = generateSessionId();
+  const now = Date.now();
+  const session: Session = {
+    id: sessionId,
+    email,
+    expires: now + (60 * 24 * 60 * 60 * 1000), // 60 days
+    createdAt: now,
+  };
+  return session;
+};
+
+const isValidSession = (session: Session): boolean => {
+  return session.expires > Date.now();
+};
+
+const cleanExpiredSessions = async () => {
+  const now = Date.now();
+  
+  // Ensure sessions object exists
+  if (!db.data.sessions) {
+    db.data.sessions = {};
+    await db.write();
+    return;
+  }
+  
+  const sessions = db.data.sessions;
+  let hasExpired = false;
+  
+  for (const [sessionId, session] of Object.entries(sessions)) {
+    if ((session as Session).expires <= now) {
+      delete sessions[sessionId];
+      hasExpired = true;
+    }
+  }
+  
+  if (hasExpired) {
+    await db.write();
+  }
+};
+
+// Authentication middleware
+const authenticateSession = async (req: any, res: any, next: any) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'No session token provided' });
+    }
+
+    const sessionId = authHeader.substring(7);
+    
+    // Ensure sessions object exists
+    if (!db.data.sessions) {
+      db.data.sessions = {};
+      await db.write();
+    }
+    
+    const session = db.data.sessions[sessionId];
+
+    if (!session || !isValidSession(session)) {
+      return res.status(401).json({ error: 'Invalid or expired session' });
+    }
+
+    req.user = { email: session.email, sessionId };
+    next();
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    res.status(500).json({ error: 'Authentication error' });
+  }
+};
 
 const generateContentWithRetry = async (params: any, maxRetries = 3) => {
   let retries = 0;
@@ -98,19 +202,68 @@ app.post("/api/auth/verify-otp", async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
+    // Clean expired sessions periodically
+    await cleanExpiredSessions();
+
+    // Ensure sessions object exists
+    if (!db.data.sessions) {
+      db.data.sessions = {};
+    }
+
+    // Create new session
+    const session = createSession(email);
+    db.data.sessions[session.id] = session;
+
     delete db.data.otps[email];
     await db.write();
 
-    res.json({ success: true });
+    res.json({ 
+      success: true, 
+      session: {
+        id: session.id,
+        email: session.email,
+        expires: session.expires
+      }
+    });
   } catch (error) {
     console.error("Verify OTP error:", error);
     res.status(500).json({ error: "Failed to verify OTP" });
   }
 });
 
-app.get("/api/course/:email", async (req, res) => {
+// Session management endpoints
+app.post("/api/auth/logout", authenticateSession, async (req, res) => {
   try {
-    const { email } = req.params;
+    const { sessionId } = req.user;
+    
+    // Ensure sessions object exists
+    if (!db.data.sessions) {
+      db.data.sessions = {};
+    } else {
+      delete db.data.sessions[sessionId];
+    }
+    
+    await db.write();
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Failed to logout" });
+  }
+});
+
+app.get("/api/auth/validate", authenticateSession, async (req, res) => {
+  try {
+    const { email } = req.user;
+    res.json({ success: true, email });
+  } catch (error) {
+    console.error("Validate session error:", error);
+    res.status(500).json({ error: "Failed to validate session" });
+  }
+});
+
+app.get("/api/course", authenticateSession, async (req, res) => {
+  try {
+    const { email } = req.user;
     const course = db.data.courses[email] || null;
     res.json(course);
   } catch (error) {
@@ -119,9 +272,9 @@ app.get("/api/course/:email", async (req, res) => {
   }
 });
 
-app.post("/api/course/:email", async (req, res) => {
+app.post("/api/course", authenticateSession, async (req, res) => {
   try {
-    const { email } = req.params;
+    const { email } = req.user;
     const course = req.body;
 
     db.data.courses[email] = course;
@@ -134,7 +287,7 @@ app.post("/api/course/:email", async (req, res) => {
   }
 });
 
-app.post("/api/process-word", async (req, res) => {
+app.post("/api/process-word", authenticateSession, async (req, res) => {
   try {
     const { word, learningLanguage, nativeLanguage } = req.body;
 
@@ -182,7 +335,7 @@ Your final output MUST be a single JSON object matching the provided schema.`;
   }
 });
 
-app.post("/api/generate-exercises", async (req, res) => {
+app.post("/api/generate-exercises", authenticateSession, async (req, res) => {
   try {
     const { learningWord, nativeWord, learningLanguage, nativeLanguage } =
       req.body;

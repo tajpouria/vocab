@@ -7,7 +7,7 @@ interface AppContextType {
   isAuthenticated: boolean;
   userEmail: string | null;
   login: (email: string) => void;
-  logout: () => void;
+  logout: () => Promise<void>;
   
   // App state
   currentCourse: Course | null;

@@ -19,12 +19,13 @@ import {
 import { SITE_LANGUAGE } from "../constants";
 import { generateExercisesForWord } from "../services/geminiService";
 import * as backendService from "../services/backendService";
+import * as authService from "../services/authService";
 
 // Initialize FSRS algorithm with default parameters
 const params = generatorParameters({ enable_fuzz: true });
 const fsrs = new FSRS(params);
 
-const USER_SESSION_KEY = "vocab-user-session";
+// Remove old session key as we now use authService
 
 export const useVocabularyStore = () => {
   // Auth State
@@ -45,29 +46,43 @@ export const useVocabularyStore = () => {
 
   // Check for existing session on initial load
   useEffect(() => {
-    try {
-      const session = sessionStorage.getItem(USER_SESSION_KEY);
-      if (session) {
-        const { email } = JSON.parse(session);
-        if (email) {
-          setUserEmail(email);
-          setIsAuthenticated(true);
+    const validateSession = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const sessionData = await authService.validateSession();
+          if (sessionData) {
+            setUserEmail(sessionData.email);
+            setIsAuthenticated(true);
+          } else {
+            // Session is invalid, clear it
+            authService.clearSession();
+            setIsAuthenticated(false);
+            setUserEmail(null);
+          }
+        } else {
+          setIsAuthenticated(false);
+          setUserEmail(null);
         }
+      } catch (error) {
+        console.error("Could not restore session", error);
+        authService.clearSession();
+        setIsAuthenticated(false);
+        setUserEmail(null);
+      } finally {
+        setIsAuthLoading(false);
       }
-    } catch (error) {
-      console.error("Could not restore session", error);
-    } finally {
-      setIsAuthLoading(false);
-    }
+    };
+    
+    validateSession();
   }, []);
 
   // Load course data when user logs in
   useEffect(() => {
     const loadData = async () => {
-      if (!userEmail) return;
+      if (!userEmail || !isAuthenticated) return;
       setIsCourseLoading(true);
       try {
-        const course = await backendService.getCourse(userEmail);
+        const course = await backendService.getCourse();
         if (course) {
           setCurrentCourse(course);
         } else {
@@ -76,27 +91,39 @@ export const useVocabularyStore = () => {
         }
       } catch (error) {
         console.error("Failed to load course from backend", error);
+        if (error instanceof Error && error.message === 'Authentication required') {
+          // Handle auth errors by logging out
+          authService.logout().then(() => {
+            setUserEmail(null);
+            setIsAuthenticated(false);
+            setCurrentCourse(null);
+            setActiveStudySetId(null);
+          }).catch(console.error);
+        }
       } finally {
         setIsCourseLoading(false);
       }
     };
     loadData();
-  }, [userEmail]);
+  }, [userEmail, isAuthenticated]);
 
   // Auth Functions
   const login = useCallback((email: string) => {
-    sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify({ email }));
+    // Note: Session is now handled by authService.verifyOtp
     setUserEmail(email);
     setIsAuthenticated(true);
   }, []);
 
-  const logout = useCallback(() => {
-    sessionStorage.removeItem(USER_SESSION_KEY);
+  const logout = useCallback(async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
     setUserEmail(null);
     setIsAuthenticated(false);
     setCurrentCourse(null);
     setActiveStudySetId(null);
-
   }, []);
 
   const createCourse = useCallback(
@@ -111,7 +138,7 @@ export const useVocabularyStore = () => {
       setCurrentCourse(newCourse);
       setActiveStudySetId(null);
   
-      await backendService.saveCourse(userEmail, newCourse);
+      await backendService.saveCourse(newCourse);
     },
     [userEmail]
   );
@@ -130,7 +157,7 @@ export const useVocabularyStore = () => {
           ...prevCourse,
           studySets: [...prevCourse.studySets, newStudySet],
         };
-        backendService.saveCourse(userEmail, updatedCourse);
+        backendService.saveCourse(updatedCourse);
         return updatedCourse;
       });
     },
@@ -188,7 +215,7 @@ export const useVocabularyStore = () => {
             s.id === studySetId ? { ...s, words: [...s.words, newWord] } : s
           ),
         };
-        backendService.saveCourse(userEmail, updatedCourse);
+        backendService.saveCourse(updatedCourse);
         return updatedCourse;
       });
 
@@ -215,7 +242,7 @@ export const useVocabularyStore = () => {
                   : studySet
               ),
             };
-            backendService.saveCourse(userEmail, courseWithExercises);
+            backendService.saveCourse(courseWithExercises);
             return courseWithExercises;
           });
         } catch (error) {
@@ -236,7 +263,7 @@ export const useVocabularyStore = () => {
                   : studySet
               ),
             };
-            backendService.saveCourse(userEmail, courseAfterRollback);
+            backendService.saveCourse(courseAfterRollback);
             return courseAfterRollback;
           });
         }
@@ -268,7 +295,7 @@ export const useVocabularyStore = () => {
             : studySet
         );
         const updatedCourse = { ...prevCourse, studySets: updatedStudySets };
-        backendService.saveCourse(userEmail, updatedCourse);
+        backendService.saveCourse(updatedCourse);
         return updatedCourse;
       });
     },
@@ -330,7 +357,7 @@ export const useVocabularyStore = () => {
           return { ...studySet, words: newWords };
         });
         const updatedCourse = { ...prevCourse, studySets: newStudySets };
-        backendService.saveCourse(userEmail, updatedCourse);
+        backendService.saveCourse(updatedCourse);
         return updatedCourse;
       });
     },

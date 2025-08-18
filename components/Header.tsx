@@ -44,7 +44,7 @@ const Header: React.FC = () => {
               )}
               {userEmail && (
                 <button
-                  onClick={logout}
+                  onClick={() => logout().catch(console.error)}
                   className="text-sm font-medium text-muted-foreground hover:text-foreground"
                 >
                   Log Out

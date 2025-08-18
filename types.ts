@@ -65,6 +65,13 @@ export enum View {
   COURSE,
 }
 
+export interface Session {
+  id: string;
+  email: string;
+  expires: number;
+  createdAt: number;
+}
+
 export type AddWordResult = {
   status: "added" | "duplicate";
   wordId: string;

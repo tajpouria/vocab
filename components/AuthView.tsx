@@ -47,9 +47,9 @@ const AuthView: React.FC = () => {
             return; // Return early, 'finally' will still run
         }
 
-        const isValid = await verifyOtp(email, otp);
-        if (isValid) {
-            login(email);
+        const session = await verifyOtp(email, otp);
+        if (session) {
+            login(session.email);
         } else {
             setError('Invalid code. Please try again.');
         }
