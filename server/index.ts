@@ -5,6 +5,7 @@ import { Low } from "lowdb";
 import { JSONFileSync } from "lowdb/node";
 import nodemailer from "nodemailer";
 import { GoogleGenAI, Type } from "@google/genai";
+import { speak } from "google-translate-api-x";
 import { Course, ExerciseType, Session } from "../types.js";
 
 // Extend Express Request type
@@ -70,7 +71,10 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
 // Session utilities
 const generateSessionId = () => {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return (
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15)
+  );
 };
 
 const createSession = (email: string): Session => {
@@ -79,7 +83,7 @@ const createSession = (email: string): Session => {
   const session: Session = {
     id: sessionId,
     email,
-    expires: now + (60 * 24 * 60 * 60 * 1000), // 60 days
+    expires: now + 60 * 24 * 60 * 60 * 1000, // 60 days
     createdAt: now,
   };
   return session;
@@ -91,24 +95,24 @@ const isValidSession = (session: Session): boolean => {
 
 const cleanExpiredSessions = async () => {
   const now = Date.now();
-  
+
   // Ensure sessions object exists
   if (!db.data.sessions) {
     db.data.sessions = {};
     await db.write();
     return;
   }
-  
+
   const sessions = db.data.sessions;
   let hasExpired = false;
-  
+
   for (const [sessionId, session] of Object.entries(sessions)) {
     if ((session as Session).expires <= now) {
       delete sessions[sessionId];
       hasExpired = true;
     }
   }
-  
+
   if (hasExpired) {
     await db.write();
   }
@@ -118,29 +122,29 @@ const cleanExpiredSessions = async () => {
 const authenticateSession = async (req: any, res: any, next: any) => {
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No session token provided' });
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "No session token provided" });
     }
 
     const sessionId = authHeader.substring(7);
-    
+
     // Ensure sessions object exists
     if (!db.data.sessions) {
       db.data.sessions = {};
       await db.write();
     }
-    
+
     const session = db.data.sessions[sessionId];
 
     if (!session || !isValidSession(session)) {
-      return res.status(401).json({ error: 'Invalid or expired session' });
+      return res.status(401).json({ error: "Invalid or expired session" });
     }
 
     req.user = { email: session.email, sessionId };
     next();
   } catch (error) {
-    console.error('Auth middleware error:', error);
-    res.status(500).json({ error: 'Authentication error' });
+    console.error("Auth middleware error:", error);
+    res.status(500).json({ error: "Authentication error" });
   }
 };
 
@@ -217,13 +221,13 @@ app.post("/api/auth/verify-otp", async (req, res) => {
     delete db.data.otps[email];
     await db.write();
 
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       session: {
         id: session.id,
         email: session.email,
-        expires: session.expires
-      }
+        expires: session.expires,
+      },
     });
   } catch (error) {
     console.error("Verify OTP error:", error);
@@ -235,14 +239,14 @@ app.post("/api/auth/verify-otp", async (req, res) => {
 app.post("/api/auth/logout", authenticateSession, async (req, res) => {
   try {
     const { sessionId } = req.user;
-    
+
     // Ensure sessions object exists
     if (!db.data.sessions) {
       db.data.sessions = {};
     } else {
       delete db.data.sessions[sessionId];
     }
-    
+
     await db.write();
     res.json({ success: true });
   } catch (error) {
@@ -389,6 +393,31 @@ Return a single JSON object matching the provided schema. Ensure 'options' are o
   } catch (error) {
     console.error("Generate exercises error:", error);
     res.status(500).json({ error: "Failed to generate exercises" });
+  }
+});
+
+app.post("/api/text-to-speech", authenticateSession, async (req, res) => {
+  try {
+    const { text, langCode } = req.body;
+
+    if (!text || !langCode) {
+      return res
+        .status(400)
+        .json({ error: "Text and language code are required" });
+    }
+
+    // Use Google Translate API for text-to-speech
+    const audioBase64 = await speak(text, { to: langCode });
+
+    res.json({
+      success: true,
+      audio: audioBase64,
+      text,
+      langCode,
+    });
+  } catch (error) {
+    console.error("Text-to-speech error:", error);
+    res.status(500).json({ error: "Failed to generate speech" });
   }
 });
 
