@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useAppContext } from "../contexts/AppContext";
-import { Word, Exercise } from "../types";
+import { Word, Exercise, ExerciseType } from "../types";
 import AddWordForm from "./AddWordForm";
 import WordCard from "./WordCard";
 import SearchIcon from "./icons/SearchIcon";
@@ -20,6 +20,14 @@ const StudySetDetailView: React.FC = () => {
     setIsInLearningMode,
   } = useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Helper function to filter out pronunciation exercises
+  const filterNonPronunciationExercises = (exercises: Exercise[]): Exercise[] => {
+    return exercises.filter(exercise => 
+      exercise.type !== ExerciseType.PRONOUNCE_WORD && 
+      exercise.type !== ExerciseType.PRONOUNCE_SENTENCE
+    );
+  };
 
   // Review state
   const [isReviewing, setIsReviewing] = useState(false);
@@ -56,7 +64,8 @@ const StudySetDetailView: React.FC = () => {
   // Effect for single-word practice setup
   useEffect(() => {
     if (wordToPractice) {
-      const shuffledExercises = [...wordToPractice.exercises].sort(
+      const filteredExercises = filterNonPronunciationExercises(wordToPractice.exercises);
+      const shuffledExercises = [...filteredExercises].sort(
         () => Math.random() - 0.5
       );
       setExerciseQueue(shuffledExercises);
@@ -74,11 +83,16 @@ const StudySetDetailView: React.FC = () => {
       const firstWord = queue[0] || null;
       setCurrentWord(firstWord);
       if (firstWord?.exercises.length) {
-        setCurrentExercise(
-          firstWord.exercises[
-            Math.floor(Math.random() * firstWord.exercises.length)
-          ]
-        );
+        const filteredExercises = filterNonPronunciationExercises(firstWord.exercises);
+        if (filteredExercises.length > 0) {
+          setCurrentExercise(
+            filteredExercises[
+              Math.floor(Math.random() * filteredExercises.length)
+            ]
+          );
+        } else {
+          setCurrentExercise(null);
+        }
       }
     }
   }, [isReviewing, getWordsForPractice, wordToPractice, activeStudySet]);
@@ -99,11 +113,16 @@ const StudySetDetailView: React.FC = () => {
       setCurrentWord(nextWord);
 
       if (nextWord?.exercises.length) {
-        setCurrentExercise(
-          nextWord.exercises[
-            Math.floor(Math.random() * nextWord.exercises.length)
-          ]
-        );
+        const filteredExercises = filterNonPronunciationExercises(nextWord.exercises);
+        if (filteredExercises.length > 0) {
+          setCurrentExercise(
+            filteredExercises[
+              Math.floor(Math.random() * filteredExercises.length)
+            ]
+          );
+        } else {
+          setCurrentExercise(null);
+        }
       } else {
         setCurrentExercise(null);
       }

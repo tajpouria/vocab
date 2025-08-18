@@ -352,7 +352,14 @@ app.post("/api/generate-exercises", authenticateSession, async (req, res) => {
           items: {
             type: Type.OBJECT,
             properties: {
-              type: { type: Type.STRING, enum: Object.values(ExerciseType) },
+              type: { 
+                type: Type.STRING, 
+                enum: [
+                  ExerciseType.TRANSLATE_MC,
+                  ExerciseType.FILL_BLANK_MC,
+                  ExerciseType.FILL_BLANK_TYPE
+                ]
+              },
               question: { type: Type.STRING },
               options: { type: Type.ARRAY, items: { type: Type.STRING } },
               correctAnswer: { type: Type.STRING },
@@ -364,15 +371,13 @@ app.post("/api/generate-exercises", authenticateSession, async (req, res) => {
       },
     };
 
-    const prompt = `Generate 5 distinct exercises for learning the word "${learningWord}" (${learningLanguage.name}) which means "${nativeWord}" (${nativeLanguage.name}).
-Create one of each of the following types:
+    const prompt = `Generate 3 distinct exercises for learning the word "${learningWord}" (${learningLanguage.name}) which means "${nativeWord}" (${nativeLanguage.name}).
+Create one of each of the following types (do NOT include pronunciation exercises):
 1. 'TRANSLATE_MC': A multiple-choice translation question. The question should be the word in ${learningLanguage.name}. Provide 3 plausible but incorrect options in ${nativeLanguage.name}.
 2. 'FILL_BLANK_MC': A multiple-choice fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with the word "${learningWord}" missing. The 'question' should be this sentence with a blank (e.g., '___'). The 'sentenceContext' field MUST contain the full, correct sentence. Provide 3 plausible but incorrect word choices in ${learningLanguage.name}. The 'translationContext' field MUST contain the translation of the full sentence into ${nativeLanguage.name}.
 3. 'FILL_BLANK_TYPE': A typing fill-in-the-blank question. Create a sentence in ${learningLanguage.name} with "${learningWord}" missing. The 'question' should be this sentence with a blank. The 'sentenceContext' field MUST contain the full, correct sentence. The 'translationContext' field MUST contain the translation of the full sentence into ${nativeLanguage.name}. The user has to type the correct answer.
-4. 'PRONOUNCE_WORD': An exercise to pronounce the word. The 'question' field should be just the word "${learningWord}".
-5. 'PRONOUNCE_SENTENCE': An exercise to pronounce a full sentence. The 'question' field should be a simple sentence in ${learningLanguage.name} that contains the word "${learningWord}".
 
-Return a single JSON object matching the provided schema. Ensure 'options' are only provided for MC types. For 'FILL_BLANK_TYPE' and 'FILL_BLANK_MC', 'correctAnswer' must always be the single correct word. For pronunciation exercises, 'correctAnswer' should be the same as the 'question'. The 'sentenceContext' and 'translationContext' fields MUST be provided for 'FILL_BLANK_MC' and 'FILL_BLANK_TYPE' exercises.`;
+Return a single JSON object matching the provided schema. Ensure 'options' are only provided for MC types. For 'FILL_BLANK_TYPE' and 'FILL_BLANK_MC', 'correctAnswer' must always be the single correct word. The 'sentenceContext' and 'translationContext' fields MUST be provided for 'FILL_BLANK_MC' and 'FILL_BLANK_TYPE' exercises.`;
 
     const response = await generateContentWithRetry({
       model: "gemini-2.5-flash",
