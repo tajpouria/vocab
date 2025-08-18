@@ -37,36 +37,36 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
     }
   }, [exercise, resetRecording]);
 
-  // This effect handles automatically playing audio when an exercise loads.
-  // Note: This is AUTOMATIC audio playback that happens when exercises first load.
-  // Manual pronunciation buttons (speaker icons) are now available in all exercise types for replay.
-  useEffect(() => {
-    if (exercise && currentCourse) {
-      let textToSpeak = '';
+  // Auto-pronunciation disabled - users can manually trigger pronunciation using speaker buttons
+  // This effect previously handled automatically playing audio when an exercise loads.
+  // Manual pronunciation buttons (speaker icons) are available in all exercise types for replay.
+  // useEffect(() => {
+  //   if (exercise && currentCourse) {
+  //     let textToSpeak = '';
 
-      switch (exercise.type) {
-        case ExerciseType.TRANSLATE_MC:
-        case ExerciseType.PRONOUNCE_WORD:
-        case ExerciseType.PRONOUNCE_SENTENCE:
-          textToSpeak = exercise.question;
-          break;
-        case ExerciseType.FILL_BLANK_MC:
-        case ExerciseType.FILL_BLANK_TYPE:
-          // For fill-in-the-blank, we want to speak the full sentence.
-          // We'll prioritize the `sentenceContext` field which should be provided by the AI.
-          // As a fallback for older data, we can try to reconstruct the sentence.
-          textToSpeak = exercise.sentenceContext || exercise.question.replace(/___/g, exercise.correctAnswer);
-          break;
-        default:
-          break;
-      }
+  //     switch (exercise.type) {
+  //       case ExerciseType.TRANSLATE_MC:
+  //       case ExerciseType.PRONOUNCE_WORD:
+  //       case ExerciseType.PRONOUNCE_SENTENCE:
+  //         textToSpeak = exercise.question;
+  //         break;
+  //       case ExerciseType.FILL_BLANK_MC:
+  //       case ExerciseType.FILL_BLANK_TYPE:
+  //         // For fill-in-the-blank, we want to speak the full sentence.
+  //         // We'll prioritize the `sentenceContext` field which should be provided by the AI.
+  //         // As a fallback for older data, we can try to reconstruct the sentence.
+  //         textToSpeak = exercise.sentenceContext || exercise.question.replace(/___/g, exercise.correctAnswer);
+  //         break;
+  //       default:
+  //         break;
+  //     }
 
-      if (textToSpeak) {
-        textToSpeech(textToSpeak, currentCourse.learningLanguage.code);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [exercise, currentCourse]);
+  //     if (textToSpeak) {
+  //       textToSpeech(textToSpeak, currentCourse.learningLanguage.code);
+  //     }
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [exercise, currentCourse]);
 
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -265,7 +265,7 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
               </button>
             </div>
             {exercise.translationContext && <p className="text-center text-muted-foreground italic mb-4 px-2 text-sm sm:text-base">"{exercise.translationContext}"</p>}
-             <div className="px-2">
+             <div className="px-2 space-y-4">
                <input
                   type="text"
                   value={userAnswer}
@@ -279,6 +279,14 @@ const ExerciseRenderer: React.FC<ExerciseRendererProps> = ({ exercise, onComplet
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleSubmit(e)}
                 />
+                {/* Submit button - particularly helpful on mobile devices */}
+                <button
+                  type="submit"
+                  disabled={!!feedback || !userAnswer.trim()}
+                  className="w-full px-4 py-3 border border-transparent text-base font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-[48px]"
+                >
+                  Submit
+                </button>
              </div>
               {feedback === 'incorrect' && (
                   <p className="text-center mt-4 text-base sm:text-lg px-2">
