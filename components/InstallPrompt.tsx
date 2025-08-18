@@ -50,19 +50,36 @@ const InstallPrompt: React.FC = () => {
     
     if (outcome === 'accepted') {
       setShowInstallPrompt(false);
+    } else if (outcome === 'dismissed') {
+      // User explicitly dismissed the native prompt, remember this choice
+      setShowInstallPrompt(false);
+      localStorage.setItem('installPromptPermanentlyDismissed', 'true');
     }
     
     setDeferredPrompt(null);
   };
 
-  const handleDismiss = () => {
+  const handleDismiss = (permanent = false) => {
     setShowInstallPrompt(false);
-    // Store dismissal in localStorage to avoid showing again for a while
-    localStorage.setItem('installPromptDismissed', Date.now().toString());
+    if (permanent) {
+      // Store permanent dismissal
+      localStorage.setItem('installPromptPermanentlyDismissed', 'true');
+    } else {
+      // Store temporary dismissal (7 days)
+      localStorage.setItem('installPromptDismissed', Date.now().toString());
+    }
   };
 
-  // Don't show if already installed or dismissed recently
+  // Don't show if already installed or dismissed
   useEffect(() => {
+    // Check for permanent dismissal first
+    const permanentlyDismissed = localStorage.getItem('installPromptPermanentlyDismissed');
+    if (permanentlyDismissed === 'true') {
+      setShowInstallPrompt(false);
+      return;
+    }
+
+    // Check for temporary dismissal (7 days)
     const dismissed = localStorage.getItem('installPromptDismissed');
     if (dismissed) {
       const dismissedTime = parseInt(dismissed);
@@ -96,26 +113,35 @@ const InstallPrompt: React.FC = () => {
           </p>
         </div>
         <button
-          onClick={handleDismiss}
+          onClick={() => handleDismiss(false)}
           className="flex-shrink-0 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+          title="Close"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div className="mt-3 flex space-x-2">
+      <div className="mt-3 space-y-2">
+        <div className="flex space-x-2">
+          <button
+            onClick={handleInstallClick}
+            className="flex-1 bg-primary text-white text-sm font-medium py-2 px-3 rounded-md hover:bg-primary/90 transition-colors"
+          >
+            Install
+          </button>
+          <button
+            onClick={() => handleDismiss(false)}
+            className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+          >
+            Not now
+          </button>
+        </div>
         <button
-          onClick={handleInstallClick}
-          className="flex-1 bg-primary text-white text-sm font-medium py-2 px-3 rounded-md hover:bg-primary/90 transition-colors"
+          onClick={() => handleDismiss(true)}
+          className="w-full text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors underline"
         >
-          Install
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm font-medium py-2 px-3 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-        >
-          Not now
+          Don't ask again
         </button>
       </div>
     </div>
