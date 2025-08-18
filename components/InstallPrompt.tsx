@@ -23,6 +23,23 @@ const InstallPrompt: React.FC = () => {
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
+      
+      // Check if user has permanently dismissed the prompt
+      const permanentlyDismissed = localStorage.getItem('installPromptPermanentlyDismissed');
+      if (permanentlyDismissed === 'true') {
+        return; // Don't show the prompt at all
+      }
+
+      // Check for temporary dismissal (7 days)
+      const dismissed = localStorage.getItem('installPromptDismissed');
+      if (dismissed) {
+        const dismissedTime = parseInt(dismissed);
+        const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+          return; // Don't show the prompt for 7 days
+        }
+      }
+
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallPrompt(true);
     };
@@ -70,25 +87,7 @@ const InstallPrompt: React.FC = () => {
     }
   };
 
-  // Don't show if already installed or dismissed
-  useEffect(() => {
-    // Check for permanent dismissal first
-    const permanentlyDismissed = localStorage.getItem('installPromptPermanentlyDismissed');
-    if (permanentlyDismissed === 'true') {
-      setShowInstallPrompt(false);
-      return;
-    }
 
-    // Check for temporary dismissal (7 days)
-    const dismissed = localStorage.getItem('installPromptDismissed');
-    if (dismissed) {
-      const dismissedTime = parseInt(dismissed);
-      const daysSinceDismissed = (Date.now() - dismissedTime) / (1000 * 60 * 60 * 24);
-      if (daysSinceDismissed < 7) { // Don't show for 7 days after dismissal
-        setShowInstallPrompt(false);
-      }
-    }
-  }, []);
 
   if (isInstalled || !showInstallPrompt || !deferredPrompt) {
     return null;
