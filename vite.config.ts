@@ -14,43 +14,16 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: "autoUpdate",
         workbox: {
-          globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-              handler: "CacheFirst",
-              options: {
-                cacheName: "google-fonts-cache",
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/rsms\.me\/inter\/.*/i,
-              handler: "CacheFirst",
-              options: {
-                cacheName: "inter-font-cache",
-                expiration: {
-                  maxEntries: 10,
-                  maxAgeSeconds: 60 * 60 * 24 * 365,
-                },
-              },
-            },
-            {
-              urlPattern: /^https:\/\/cdn\.tailwindcss\.com\/.*/i,
-              handler: "StaleWhileRevalidate",
-              options: {
-                cacheName: "tailwind-cache",
-                expiration: {
-                  maxEntries: 5,
-                  maxAgeSeconds: 60 * 60 * 24 * 30,
-                },
-              },
-            },
-          ],
+          globPatterns: [],
+          skipWaiting: true,
+          clientsClaim: true,
+          cleanupOutdatedCaches: true,
+          disableDevLogs: true,
+          navigateFallback: null,
+          runtimeCaching: [],
+          sourcemap: false,
         },
+        disable: false,
         includeAssets: [
           "favicon.ico",
           "apple-touch-icon.png",
